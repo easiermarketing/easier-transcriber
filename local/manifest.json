@@ -1,0 +1,51 @@
+{
+  "manifest_version": "0.3",
+  "name": "easier-transcribe",
+  "display_name": "Easier Transcribe",
+  "version": "0.1.0",
+  "description": "Free, private transcription of files, links and YouTube videos, on your own computer.",
+  "long_description": "Ask Claude to transcribe an audio or video file, a direct media link, a YouTube video or a page from any site yt-dlp supports. YouTube videos use their own captions first, so they take a second or two. Everything else is transcribed by Whisper running on your computer. Nothing is uploaded and there is no account or key. Outputs plain text, timestamped text, SRT, VTT or JSON.",
+  "author": {
+    "name": "Easier Now",
+    "email": "hello@easiernow.co",
+    "url": "https://easiernow.co"
+  },
+  "homepage": "https://transcribe.easiernow.co",
+  "license": "MIT",
+  "keywords": ["transcription", "whisper", "youtube", "captions", "subtitles", "srt"],
+  "server": {
+    "type": "node",
+    "entry_point": "src/mcp.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/src/mcp.js"],
+      "env": {
+        "EASIER_TRANSCRIBE_MODEL": "${user_config.model}"
+      }
+    }
+  },
+  "user_config": {
+    "model": {
+      "type": "string",
+      "title": "Whisper model",
+      "description": "tiny, base, small, medium or turbo. small is the best balance of speed and accuracy.",
+      "default": "small",
+      "required": false
+    }
+  },
+  "tools": [
+    {
+      "name": "transcribe",
+      "description": "Transcribe a local audio or video file, a media link, a YouTube video or a page link."
+    },
+    {
+      "name": "check_transcription",
+      "description": "Wait for, or cancel, a long transcription."
+    }
+  ],
+  "compatibility": {
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  }
+}

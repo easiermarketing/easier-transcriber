@@ -15,12 +15,12 @@ export default function Header() {
             </div>
           </div>
           <a
-            href="https://easieragency.com"
+            href="https://easiernow.co"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-lightGrey hover:text-cyan transition-colors"
           >
-            By Easier Agency
+            By Easier Now
           </a>
         </div>
       </div>

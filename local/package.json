@@ -1,0 +1,63 @@
+{
+  "name": "easier-transcribe",
+  "version": "0.1.0",
+  "description": "Free, private transcription on your own machine. Files, links and YouTube videos to text, for you, Claude and any MCP client. No sign-up, nothing uploaded.",
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "Easier Now",
+    "email": "hello@easiernow.co",
+    "url": "https://easiernow.co"
+  },
+  "homepage": "https://transcribe.easiernow.co",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/easiermarketing/easier-transcriber.git",
+    "directory": "local"
+  },
+  "bugs": {
+    "url": "https://github.com/easiermarketing/easier-transcriber/issues"
+  },
+  "bin": {
+    "easier-transcribe": "src/cli.js",
+    "easier-transcribe-mcp": "src/mcp.js"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "mcp": "node src/mcp.js",
+    "serve": "node src/cli.js serve",
+    "test": "node --test",
+    "prepublishOnly": "node --test"
+  },
+  "keywords": [
+    "transcription",
+    "whisper",
+    "youtube",
+    "captions",
+    "mcp",
+    "claude",
+    "srt",
+    "model-context-protocol",
+    "speech-to-text",
+    "subtitles",
+    "vtt",
+    "yt-dlp",
+    "local",
+    "private"
+  ],
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.1",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "ffmpeg-static": "^5.3.0",
+    "zod": "^4.6.7"
+  }
+}

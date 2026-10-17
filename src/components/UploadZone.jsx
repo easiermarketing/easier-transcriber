@@ -1,6 +1,28 @@
 import React, { useRef, useState } from 'react';
 import { isValidFile, formatFileSize, ALL_SUPPORTED } from '../lib/utils';
 
+function UploadIcon({ active }) {
+  return (
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true" className="mx-auto">
+      <rect x="1" y="1" width="46" height="46" rx="23" stroke="url(#upload-ring)" strokeWidth="2" />
+      <path
+        d={active ? 'M24 14v18m0 0-7-7m7 7 7-7' : 'M24 32V14m0 0-7 7m7-7 7 7'}
+        stroke="#FFFFFF"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <defs>
+        <linearGradient id="upload-ring" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#6EF6FF" />
+          <stop offset="0.5" stopColor="#6E46FF" />
+          <stop offset="1" stopColor="#0694FF" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
 export default function UploadZone({ onFileSelect, disabled }) {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -8,116 +30,87 @@ export default function UploadZone({ onFileSelect, disabled }) {
 
   const handleDragOver = (e) => {
     e.preventDefault();
-    if (!disabled) {
-      setIsDragging(true);
-    }
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
+    if (!disabled) setIsDragging(true);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
     setError('');
-
     if (disabled) return;
-
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length === 0) {
-      setError('No files selected');
+    const [file] = Array.from(e.dataTransfer.files);
+    if (!file) {
+      setError('No file found in what you dropped.');
       return;
     }
-
-    const file = files[0];
     validateAndSelect(file);
   };
 
   const handleFileSelect = (e) => {
     setError('');
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    validateAndSelect(files[0]);
+    const [file] = Array.from(e.target.files);
+    e.target.value = '';
+    if (file) validateAndSelect(file);
   };
 
   const validateAndSelect = (file) => {
-    // Check file type
     if (!isValidFile(file)) {
-      setError(`Unsupported file format. Supported: ${ALL_SUPPORTED.join(', ').toUpperCase()}`);
+      setError(`That file type isn't supported. Try one of: ${ALL_SUPPORTED.join(', ').toUpperCase()}.`);
       return;
     }
-
-    // Check file size (warn if > 2GB)
     if (file.size > 2 * 1024 * 1024 * 1024) {
       const confirmed = window.confirm(
-        `This file is ${formatFileSize(file.size)}. Processing very large files may be slow or cause memory issues. Continue?`
+        `This file is ${formatFileSize(file.size)}. Browsers struggle with files over 2 GB, so it may fail. For long recordings the free helper (npx easier-transcribe) is more reliable. Try anyway?`
       );
       if (!confirmed) return;
     }
-
     onFileSelect(file);
   };
 
   return (
     <div
       onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
+      onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`
-        relative border-2 border-dashed rounded-2xl p-12 transition-all
-        ${isDragging && !disabled
-          ? 'border-cyan bg-darkGrey/50 scale-105'
-          : 'border-darkGrey hover:border-purple'
+      onClick={() => !disabled && fileInputRef.current?.click()}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+          e.preventDefault();
+          fileInputRef.current?.click();
         }
+      }}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-label="Choose an audio or video file to transcribe"
+      className={`
+        relative border-2 border-dashed rounded-2xl p-12 transition-all focus:outline-none focus-visible:border-cyan
+        ${isDragging && !disabled ? 'border-cyan bg-darkGrey/50' : 'border-darkGrey hover:border-purple'}
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}
     >
-      {/* Background glow effect */}
-      <div className={`
-        absolute inset-0 rounded-2xl opacity-0 transition-opacity
-        ${isDragging ? 'opacity-10' : ''}
-        bg-gradient-to-br from-cyan via-purple to-blue blur-xl
-      `} />
-
       <input
         ref={fileInputRef}
         type="file"
         onChange={handleFileSelect}
         disabled={disabled}
-        accept={ALL_SUPPORTED.map(ext => `.${ext}`).join(',')}
+        accept={ALL_SUPPORTED.map((ext) => `.${ext}`).join(',')}
       />
 
       <div className="relative text-center">
-        <div className="text-5xl mb-4">
-          {isDragging ? 'ð¯' : 'ð'}
+        <div className="mb-4">
+          <UploadIcon active={isDragging} />
         </div>
-
-        <h3 className="text-xl font-bold mb-2">
-          {isDragging ? 'Drop your file here' : 'Drop audio or video file'}
-        </h3>
-
-        <p className="text-lightGrey text-sm mb-6">
-          or{' '}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled}
-            className="text-cyan hover:text-purple font-semibold transition-colors"
-          >
-            browse from your device
-          </button>
+        <h3 className="text-xl font-bold mb-2">{isDragging ? 'Drop it here' : 'Drop an audio or video file'}</h3>
+        <p className="text-lightGrey/80 text-sm mb-6">
+          or <span className="text-cyan font-semibold">choose one from your device</span>
         </p>
-
-        <div className="inline-block text-xs text-lightGrey bg-darkGrey px-4 py-2 rounded-full">
-          MKV, MP4, MOV, WebM, MP3, WAV, M4A, OGG, FLAC
+        <div className="inline-block text-xs text-lightGrey/80 bg-darkGrey px-4 py-2 rounded-full">
+          {ALL_SUPPORTED.map((ext) => ext.toUpperCase()).join(', ')}
         </div>
       </div>
 
       {error && (
-        <div className="mt-6 p-4 bg-red-900/20 border border-red-700 rounded-lg text-red-400 text-sm">
-          â {error}
-        </div>
+        <div className="relative mt-6 p-4 bg-red-900/20 border border-red-700 rounded-lg text-red-400 text-sm">{error}</div>
       )}
     </div>
   );

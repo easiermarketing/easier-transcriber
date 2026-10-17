@@ -1,331 +1,395 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import BrowserWarning from './components/BrowserWarning';
 import UploadZone from './components/UploadZone';
+import LinkInput from './components/LinkInput';
 import ModelStatus from './components/ModelStatus';
 import ProgressBar from './components/ProgressBar';
 import TranscriptOutput from './components/TranscriptOutput';
-import { extractAudio, getAudioDuration } from './lib/audio';
-import { isVideoFile } from './lib/utils';
+import HelperPanel from './components/HelperPanel';
+import AIToolsSection from './components/AIToolsSection';
+import { extractAudio } from './lib/audio';
+import { getYouTubeCaptions } from './lib/youtube';
+import { isHelperRunning, transcribeWithHelper } from './lib/helper';
+import { isValidFile, isVideoFile } from './lib/utils';
+
+// YouTube problems the free helper can usually get around.
+const HELPER_CAN_HELP = {
+  no_captions: 'This video has no captions.',
+  blocked: "YouTube wouldn't share this video's captions with us just now.",
+  rate_limited: 'YouTube is busy and asked us to slow down.',
+  unavailable: "We couldn't reach YouTube just now.",
+  login_required: 'YouTube wants a sign-in before it shares this video.',
+};
+
+// For direct links whose address has no file extension.
+const MIME_EXTENSIONS = {
+  'audio/mpeg': 'mp3',
+  'audio/mp3': 'mp3',
+  'audio/mp4': 'm4a',
+  'audio/x-m4a': 'm4a',
+  'audio/wav': 'wav',
+  'audio/x-wav': 'wav',
+  'audio/ogg': 'ogg',
+  'audio/flac': 'flac',
+  'audio/webm': 'webm',
+  'video/webm': 'webm',
+  'video/mp4': 'mp4',
+  'video/quicktime': 'mov',
+  'video/x-matroska': 'mkv',
+};
+
+// On a GPU, one block of audio should never take this long.
+const GPU_STALL_MS = 120000;
 
 export default function App() {
-  // State management
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [phase, setPhase] = useState('idle'); // idle | working | done | helper | error
+  const [job, setJob] = useState(null); // { kind: 'file' | 'youtube' | 'helper', label, link }
+  const [status, setStatus] = useState({ message: '', progress: 0, eta: 0 });
+  const [partial, setPartial] = useState([]);
   const [transcript, setTranscript] = useState(null);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  const [modelProgress, setModelProgress] = useState(0);
-  const [modelReady, setModelReady] = useState(false);
-  const [backend, setBackend] = useState('');
-  const [modelError, setModelError] = useState('');
-  const [transcriptionProgress, setTranscriptionProgress] = useState(0);
-  const [statusMessage, setStatusMessage] = useState('');
-  const [estimatedTime, setEstimatedTime] = useState(0);
-  const [fileDuration, setFileDuration] = useState(0);
+  const [error, setError] = useState('');
+  const [helperReason, setHelperReason] = useState('');
+  const [helperTitle, setHelperTitle] = useState('');
+  const [checkingHelper, setCheckingHelper] = useState(false);
+  const [model, setModel] = useState({ ready: false, progress: 0, backend: '', loading: false });
 
   const workerRef = useRef(null);
-  const transcriptionStartTimeRef = useRef(null);
+  const abortRef = useRef(null);
+  const startedRef = useRef(0);
+  const fileRef = useRef(null);
+  const audioSentRef = useRef(false);
+  const audioRef = useRef(null);
+  const modelReadyRef = useRef(false);
+  const forceWasmRef = useRef(false);
+  const onGpuRef = useRef(false);
+  const lastProgressRef = useRef(0);
+  const runningOnRef = useRef('Transcribing');
+  const resultRef = useRef(null);
 
-  // Initialize worker
+  useEffect(() => () => workerRef.current?.terminate(), []);
   useEffect(() => {
-    if (!workerRef.current) {
-      workerRef.current = new Worker(
-        new URL('./workers/transcriber.worker.js', import.meta.url),
-        { type: 'module' }
-      );
+    if (!resultRef.current || !['done', 'helper', 'error'].includes(phase)) return;
+    // Bring the result to just under the sticky header.
+    const top = resultRef.current.getBoundingClientRect().top + window.scrollY - 112;
+    if (Math.abs(window.scrollY - top) > 40) window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }, [phase]);
+  useEffect(() => {
+    modelReadyRef.current = model.ready;
+  }, [model.ready]);
 
-      workerRef.current.onmessage = handleWorkerMessage;
-      workerRef.current.onerror = handleWorkerError;
+  // If the GPU accepts work but stalls, switch to the processor.
+  useEffect(() => {
+    if (phase !== 'working' || job?.kind !== 'file') return undefined;
+    const timer = setInterval(() => {
+      if (onGpuRef.current && audioSentRef.current && Date.now() - lastProgressRef.current > GPU_STALL_MS) switchToCpu();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [phase, job]);
 
-      // Initialize transcriber
-      workerRef.current.postMessage({ type: 'init', modelSize: 'small' });
-    }
+  const reset = () => {
+    abortRef.current?.abort();
+    audioSentRef.current = false;
+    audioRef.current = null;
+    fileRef.current = null;
+    setPhase('idle');
+    setJob(null);
+    setTranscript(null);
+    setPartial([]);
+    setError('');
+    setStatus({ message: '', progress: 0, eta: 0 });
+  };
 
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate();
-        workerRef.current = null;
-      }
-    };
-  }, []);
+  const fail = (message) => {
+    setError(message);
+    setPhase('error');
+  };
 
-  const handleWorkerMessage = (e) => {
-    const { type, message, progress, result, backend: workerBackend, error } = e.data;
-
-    switch (type) {
-      case 'status':
-        setStatusMessage(message);
-        break;
-
+  const handleWorkerMessage = ({ data }) => {
+    switch (data.type) {
       case 'model-progress':
-        setModelProgress(progress);
+        setModel((m) => ({ ...m, progress: data.progress }));
         break;
-
       case 'model-ready':
-        setModelReady(true);
-        setBackend(workerBackend);
-        setModelProgress(0);
+        setModel({ ready: true, progress: 1, backend: data.backend, model: data.model, loading: false });
+        onGpuRef.current = data.backend.includes('WebGPU');
+        runningOnRef.current = `Transcribing on ${data.backend}`;
+        lastProgressRef.current = Date.now();
+        if (audioSentRef.current) {
+          startedRef.current = Date.now();
+          setStatus({ message: runningOnRef.current, progress: 0, eta: 0 });
+        }
         break;
-
+      case 'gpu-slow':
+        switchToCpu();
+        break;
+      case 'partial':
+        lastProgressRef.current = Date.now();
+        setPartial((current) => [...current, ...data.segments]);
+        break;
+      case 'progress': {
+        lastProgressRef.current = Date.now();
+        const elapsed = (Date.now() - startedRef.current) / 1000;
+        const eta = data.progress > 0 ? Math.max(0, elapsed / data.progress - elapsed) : 0;
+        setStatus({ message: runningOnRef.current, progress: data.progress, eta });
+        break;
+      }
       case 'complete':
-        setTranscript(result);
-        setIsTranscribing(false);
-        setStatusMessage('');
-        setTranscriptionProgress(0);
+        setTranscript({ ...data.result, title: fileRef.current?.name, source: fileRef.current?.name });
+        setPartial([]);
+        audioRef.current = null;
+        setPhase('done');
         break;
-
       case 'error':
-        setModelError(error);
-        setIsTranscribing(false);
+        setModel((m) => ({ ...m, loading: false }));
+        fail(data.error);
         break;
-
       default:
         break;
     }
   };
 
-  const handleWorkerError = (error) => {
-    console.error('Worker error:', error);
-    setModelError(error.message || 'Worker error occurred');
-    setIsTranscribing(false);
+  const getWorker = () => {
+    if (!workerRef.current) {
+      workerRef.current = new Worker(new URL('./workers/transcriber.worker.js', import.meta.url), { type: 'module' });
+      workerRef.current.onmessage = handleWorkerMessage;
+      workerRef.current.onerror = (e) => fail(e.message || 'Something went wrong in the transcriber.');
+      workerRef.current.postMessage({ type: 'init', forceWasm: forceWasmRef.current });
+      setModel((m) => ({ ...m, loading: true }));
+    }
+    return workerRef.current;
   };
 
-  const handleFileSelect = async (file) => {
-    setSelectedFile(file);
-    setTranscript(null);
-    setTranscriptionProgress(0);
-    setStatusMessage('');
-    setEstimatedTime(0);
+  // A stuck GPU job can't be cancelled, so start a fresh worker on the CPU
+  // and give it the audio we already have. This holds for the whole visit.
+  function switchToCpu() {
+    workerRef.current?.terminate();
+    workerRef.current = null;
+    forceWasmRef.current = true;
+    onGpuRef.current = false;
+    setModel({ ready: false, progress: 0, backend: '', loading: false });
+    setPartial([]);
+    setStatus({ message: 'Your graphics chip is slow in this browser, so switching to your processor', progress: 0, eta: 0 });
+    const worker = getWorker();
+    if (audioSentRef.current && audioRef.current) {
+      startedRef.current = Date.now();
+      worker.postMessage({ type: 'transcribe', audio: audioRef.current, forceWasm: true });
+    }
+  }
 
-    // Start transcription
-    await transcribeFile(file);
-  };
+  const handleFile = async (file) => {
+    reset();
+    fileRef.current = file;
+    setJob({ kind: 'file', label: file.name });
+    setPhase('working');
+    // Start loading Whisper while the audio is being prepared.
+    getWorker();
 
-  const transcribeFile = async (file) => {
     try {
-      setIsTranscribing(true);
-      setModelError('');
-      setStatusMessage('Preparing audio...');
+      const isVideo = isVideoFile(file);
+      setStatus({ message: isVideo ? 'Pulling the audio out of the video' : 'Reading the audio', progress: 0, eta: 0 });
+      const audio = await extractAudio(file, {
+        isVideo,
+        onProgress: (p) => setStatus({ message: 'Pulling the audio out of the video', progress: p, eta: 0 }),
+      });
+      if (fileRef.current !== file) return; // cancelled or replaced meanwhile
+      // Kept (not transferred) so we can hand it to a CPU worker if the GPU stalls.
+      audioRef.current = audio;
+      audioSentRef.current = true;
+      startedRef.current = Date.now();
+      lastProgressRef.current = Date.now();
+      setStatus({ message: modelReadyRef.current ? runningOnRef.current : 'Getting Whisper ready', progress: 0, eta: 0 });
+      getWorker().postMessage({ type: 'transcribe', audio, forceWasm: forceWasmRef.current });
+    } catch (e) {
+      fail(e.message);
+    }
+  };
 
-      // Step 1: Extract audio from video or process audio file
-      if (isVideoFile(file)) {
-        setStatusMessage('Extracting audio from video...');
-        try {
-          const audioData = await extractAudio(file, (progress) => {
-            setTranscriptionProgress(progress * 0.3); // First 30% for extraction
-          });
+  const handleLink = async (link) => {
+    reset();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setJob({ kind: 'youtube', label: 'YouTube video', link });
+    setPhase('working');
+    setStatus({ message: 'Reading the captions', progress: 0, eta: 0 });
 
-          // Estimate duration from audio data (16kHz = 16000 samples/second)
-          const estimatedDuration = audioData.length / 16000;
-          setFileDuration(estimatedDuration);
-
-          // Start transcription
-          performTranscription(audioData, estimatedDuration);
-        } catch (error) {
-          setModelError(`Failed to extract audio: ${error.message}`);
-          setIsTranscribing(false);
-        }
+    try {
+      const result = await getYouTubeCaptions(link);
+      if (controller.signal.aborted) return;
+      setTranscript(result);
+      setPhase('done');
+    } catch (e) {
+      if (controller.signal.aborted) return;
+      if (HELPER_CAN_HELP[e.code]) {
+        setHelperReason(HELPER_CAN_HELP[e.code]);
+        setHelperTitle(e.info?.title || '');
+        setPhase('helper');
       } else {
-        // Audio file - decode directly
-        setStatusMessage('Processing audio...');
-        try {
-          const arrayBuffer = await file.arrayBuffer();
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-          // Resample to 16kHz if needed
-          const sampleRate = audioBuffer.sampleRate;
-          const targetSampleRate = 16000;
-          const rawData = audioBuffer.getChannelData(0);
-
-          let audioData = rawData;
-          if (sampleRate !== targetSampleRate) {
-            audioData = resampleAudio(rawData, sampleRate, targetSampleRate);
-          }
-
-          const estimatedDuration = audioBuffer.duration;
-          setFileDuration(estimatedDuration);
-
-          // Start transcription
-          performTranscription(audioData, estimatedDuration);
-        } catch (error) {
-          setModelError(`Failed to process audio: ${error.message}`);
-          setIsTranscribing(false);
-        }
+        fail(e.message);
       }
-    } catch (error) {
-      setModelError(`Transcription failed: ${error.message}`);
-      setIsTranscribing(false);
     }
   };
 
-  const performTranscription = (audioData, duration) => {
-    transcriptionStartTimeRef.current = Date.now();
-
-    // Estimate chunks and total time
-    const chunkCount = Math.ceil(duration / 30);
-    const estimatedProcessingTime = chunkCount * 5; // Rough estimate
-
-    setStatusMessage('Transcribing audio...');
-    setTranscriptionProgress(0.3); // Already 30% from extraction
-
-    // Send to worker
-    workerRef.current.postMessage({
-      type: 'transcribe',
-      audio: audioData,
-      modelSize: 'small',
-    });
-
-    // Update progress estimate
-    const progressInterval = setInterval(() => {
-      if (!isTranscribing) {
-        clearInterval(progressInterval);
-        return;
-      }
-
-      const elapsed = (Date.now() - transcriptionStartTimeRef.current) / 1000;
-      const estimated = Math.min(0.95, 0.3 + (elapsed / estimatedProcessingTime) * 0.65);
-      setTranscriptionProgress(estimated);
-
-      const remaining = Math.max(0, estimatedProcessingTime - elapsed);
-      setEstimatedTime(remaining);
-    }, 500);
+  // A direct link to a media file: download it in the browser, then treat it
+  // like a dropped file. Only works when the site allows it (CORS).
+  const handleMediaLink = async (link) => {
+    reset();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const name = decodeURIComponent(new URL(link).pathname.split('/').pop() || 'download');
+    setJob({ kind: 'file', label: name });
+    setPhase('working');
+    setStatus({ message: 'Downloading the file', progress: 0, eta: 0 });
+    let blob;
+    try {
+      const response = await fetch(link, { signal: controller.signal });
+      if (!response.ok) throw new Error(`The site returned ${response.status}.`);
+      blob = await response.blob();
+    } catch (e) {
+      if (controller.signal.aborted) return;
+      fail(
+        e.message.startsWith('The site')
+          ? `Couldn't download that file. ${e.message}`
+          : "That site doesn't let browsers fetch its files directly. Download the file and drop it in above instead."
+      );
+      return;
+    }
+    const extension = MIME_EXTENSIONS[blob.type.split(';')[0]] || 'mp4';
+    const file = new File([blob], /\.[a-z0-9]{2,4}$/i.test(name) ? name : `${name}.${extension}`, { type: blob.type });
+    if (!isValidFile(file)) {
+      fail("That link isn't an audio or video file we can read. Try a direct link to an MP3, MP4, M4A, WAV or similar.");
+      return;
+    }
+    handleFile(file);
   };
 
-  const resampleAudio = (audioData, oldSampleRate, newSampleRate) => {
-    if (oldSampleRate === newSampleRate) {
-      return audioData;
+  const handleHelper = async () => {
+    setCheckingHelper(true);
+    const running = await isHelperRunning();
+    setCheckingHelper(false);
+    if (!running) {
+      setHelperReason("We couldn't find the helper. Is the terminal window with it still open?");
+      return;
     }
 
-    const ratio = oldSampleRate / newSampleRate;
-    const newLength = Math.round(audioData.length / ratio);
-    const result = new Float32Array(newLength);
+    const link = job.link;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setJob({ kind: 'helper', label: helperTitle || 'YouTube video', link });
+    setPhase('working');
+    setStatus({ message: 'Asking the helper to fetch the audio', progress: 0, eta: 0 });
+    startedRef.current = Date.now();
 
-    let offsetResult = 0;
-    let offsetAudio = 0;
-
-    while (offsetResult < newLength) {
-      const nextOffsetAudio = Math.round((offsetResult + 1) * ratio);
-      let accum = 0;
-      let count = 0;
-
-      for (let i = Math.floor(offsetAudio); i < nextOffsetAudio && i < audioData.length; i++) {
-        accum += audioData[i];
-        count++;
-      }
-
-      result[offsetResult] = accum / count;
-      offsetResult++;
-      offsetAudio = nextOffsetAudio;
+    try {
+      const result = await transcribeWithHelper(link, {
+        signal: controller.signal,
+        onProgress: ({ progress, message }) => {
+          const elapsed = (Date.now() - startedRef.current) / 1000;
+          setStatus({ message: message || 'Transcribing on your computer', progress, eta: progress > 0.02 ? elapsed / progress - elapsed : 0 });
+        },
+      });
+      setTranscript(result);
+      setPhase('done');
+    } catch (e) {
+      if (!controller.signal.aborted) fail(e.message);
     }
-
-    return result;
   };
 
   const handleCancel = () => {
-    setIsTranscribing(false);
-    setTranscriptionProgress(0);
-    setStatusMessage('');
-    setEstimatedTime(0);
+    if (job?.kind === 'file' && workerRef.current) {
+      // Stopping Whisper mid-run means starting a fresh worker. The model
+      // reloads from the browser cache, so the next file starts quickly.
+      workerRef.current.terminate();
+      workerRef.current = null;
+      setModel({ ready: false, progress: 0, backend: '', loading: false });
+    }
+    reset();
   };
+
+  const working = phase === 'working';
+  const liveTranscript = partial.length ? { title: job?.label, segments: partial } : null;
 
   return (
     <div className="min-h-screen flex flex-col bg-darkBg text-textLight">
       <Header />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-12">
-        {/* Hero Section */}
-        <section className="mb-16 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-cyan via-purple to-blue bg-clip-text text-transparent">
-            Transcribe Any Video or Audio
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-12">
+        <section className="mb-12 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-cyan via-purple to-blue bg-clip-text text-transparent leading-tight">
+            Turn any video, audio or YouTube link into text
           </h2>
-          <p className="text-xl text-lightGrey mb-3">
-            Free, Private, Instant
+          <p className="text-xl text-lightGrey mb-3">Free. No sign-up, no limits, no ads.</p>
+          <p className="text-lightGrey/80 max-w-2xl mx-auto mb-5">
+            Whisper runs right here in your browser, so your files never leave your device.
           </p>
-          <p className="text-lightGrey max-w-2xl mx-auto mb-4">
-            Powered by Whisper AI. Runs entirely in your browser. Nothing is uploaded anywhere.
-          </p>
-          <div className="inline-flex items-center gap-2 bg-darkGrey px-4 py-2 rounded-full">
-            <span className="text-cyan">ð</span>
-            <p className="text-sm">Your files never leave your device</p>
-          </div>
         </section>
 
-        {/* Browser warning */}
         <BrowserWarning />
+        <div ref={resultRef} />
 
-        {/* Upload Zone */}
-        {!selectedFile && !transcript ? (
-          <section className="mb-12">
-            <UploadZone onFileSelect={handleFileSelect} disabled={isTranscribing} />
+        {phase === 'idle' && (
+          <section className="space-y-4 mb-12">
+            <UploadZone onFileSelect={handleFile} disabled={working} />
+            <LinkInput onYouTube={handleLink} onMediaLink={handleMediaLink} disabled={working} />
           </section>
-        ) : null}
+        )}
 
-        {/* File info and model status */}
-        {selectedFile && (
-          <section className="mb-8 space-y-6">
-            {/* File info card */}
+        {working && (
+          <section className="space-y-4 mb-8">
             <div className="bg-darkGrey p-6 rounded-xl">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm text-lightGrey">Selected file</p>
-                  <p className="font-semibold text-lg">{selectedFile.name}</p>
-                </div>
-                {!transcript && (
-                  <button
-                    onClick={() => {
-                      setSelectedFile(null);
-                      setTranscript(null);
-                    }}
-                    className="px-6 py-2 rounded-full text-sm font-semibold bg-darkBg hover:bg-darkGrey text-textLight transition-colors"
-                  >
-                    Change
-                  </button>
-                )}
-              </div>
+              <p className="text-xs text-lightGrey/70">{job.kind === 'file' ? 'File' : 'Link'}</p>
+              <p className="font-semibold text-lg truncate">{job.label}</p>
             </div>
-
-            {/* Model status */}
-            <ModelStatus
-              modelProgress={modelProgress}
-              modelReady={modelReady}
-              backend={backend}
-              error={modelError}
-            />
-
-            {/* Transcription progress */}
+            {job.kind === 'file' && !model.ready && (
+              <ModelStatus modelProgress={model.progress} modelReady={model.ready} backend={model.backend} />
+            )}
             <ProgressBar
-              progress={transcriptionProgress}
-              statusMessage={statusMessage}
-              estimatedTime={estimatedTime}
+              progress={status.progress}
+              statusMessage={status.message}
+              estimatedTime={status.eta}
               onCancel={handleCancel}
-              isVisible={isTranscribing}
+              isVisible
             />
+            {liveTranscript && <TranscriptOutput transcript={liveTranscript} isLive />}
           </section>
         )}
 
-        {/* Transcript output */}
-        {transcript && (
+        {phase === 'helper' && (
           <section className="mb-12">
-            <TranscriptOutput transcript={transcript} isLoading={isTranscribing} />
+            <HelperPanel reason={helperReason} title={helperTitle} onRetry={handleHelper} onCancel={reset} checking={checkingHelper} />
           </section>
         )}
 
-        {/* New transcription button */}
-        {transcript && !isTranscribing && (
-          <section className="text-center mb-12">
-            <button
-              onClick={() => {
-                setSelectedFile(null);
-                setTranscript(null);
-                setTranscriptionProgress(0);
-              }}
-              className="px-8 py-4 rounded-full font-bold text-lg bg-gradient-to-r from-purple to-blue hover:opacity-90 text-white transition-opacity"
-            >
-              Transcribe Another File
-            </button>
+        {phase === 'error' && (
+          <section className="mb-12 space-y-4">
+            <div className="p-6 bg-red-900/20 border border-red-700 rounded-xl">
+              <p className="font-semibold text-red-300 mb-1">That didn't work</p>
+              <p className="text-sm text-red-200/90">{error}</p>
+            </div>
+            <div className="text-center">
+              <button onClick={reset} className="px-6 py-3 rounded-full text-sm font-semibold bg-darkGrey hover:bg-black text-textLight">
+                Try again
+              </button>
+            </div>
           </section>
         )}
+
+        {phase === 'done' && transcript && (
+          <section className="space-y-8 mb-12">
+            <TranscriptOutput transcript={transcript} />
+            <div className="text-center">
+              <button
+                onClick={reset}
+                className="px-8 py-4 rounded-full font-bold text-lg bg-gradient-to-r from-purple to-blue hover:opacity-90 text-white"
+              >
+                Transcribe something else
+              </button>
+            </div>
+          </section>
+        )}
+
+        <AIToolsSection />
       </main>
 
       <Footer />
