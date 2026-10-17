@@ -11,18 +11,29 @@ import { YouTubeError, fetchCaptionTrack, parseYouTubeId, pickTrack } from '@loc
 
 export { parseYouTubeId };
 
+// YouTube turns away a share of lookups from cloud servers ("confirm you're
+// not a bot"), but each new request goes out from a different address, so a
+// few quick retries nearly always get through.
+const RETRYABLE = new Set(['blocked', 'rate_limited', 'unavailable', 'http_error']);
+const MAX_TRIES = 8;
+
 async function api(params) {
-  const response = await fetch(`/api/youtube?${new URLSearchParams(params)}`);
-  let body = {};
-  try {
-    body = await response.json();
-  } catch {
-    // not JSON: the lookup service itself is down
+  for (let attempt = 1; ; attempt++) {
+    const response = await fetch(`/api/youtube?${new URLSearchParams({ ...params, try: attempt })}`);
+    let body = {};
+    try {
+      body = await response.json();
+    } catch {
+      // not JSON: the lookup service itself is down
+    }
+    if (response.ok) return body;
+
+    const code = body.code || 'unavailable';
+    if (!RETRYABLE.has(code) || attempt >= MAX_TRIES) {
+      throw new YouTubeError(body.error || "Couldn't reach YouTube just now. Try again in a minute.", code);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 150));
   }
-  if (!response.ok) {
-    throw new YouTubeError(body.error || "Couldn't reach YouTube just now. Try again in a minute.", body.code || 'unavailable');
-  }
-  return body;
 }
 
 export async function getYouTubeCaptions(link, { language = 'en' } = {}) {

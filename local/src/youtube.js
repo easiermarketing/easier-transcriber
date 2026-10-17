@@ -13,15 +13,26 @@
  */
 
 const PLAYER_URL = 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false';
-const ANDROID_CLIENT = {
-  clientName: 'ANDROID',
-  clientVersion: '20.10.38',
-  androidSdkVersion: 34,
-  osName: 'Android',
-  osVersion: '14',
-  hl: 'en',
-  gl: 'US',
-};
+
+// YouTube sometimes answers "confirm you're not a bot" to one app's request
+// and not another's, especially from cloud servers. These are the requests
+// YouTube's Android and iPhone apps make, tried in order, as yt-dlp does.
+// (The VR and TV app requests were tried in Oct 2026: VR is refused even
+// from home connections and the TV one has been retired.)
+const CLIENTS = [
+  {
+    name: 'ANDROID',
+    id: '3',
+    userAgent: 'com.google.android.youtube/20.10.38 (Linux; U; Android 14) gzip',
+    client: { clientName: 'ANDROID', clientVersion: '20.10.38', androidSdkVersion: 34, osName: 'Android', osVersion: '14' },
+  },
+  {
+    name: 'IOS',
+    id: '5',
+    userAgent: 'com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)',
+    client: { clientName: 'IOS', clientVersion: '20.10.4', deviceMake: 'Apple', deviceModel: 'iPhone16,2', osName: 'iPhone', osVersion: '18.3.2.22D82' },
+  },
+];
 
 export class YouTubeError extends Error {
   constructor(message, code) {
@@ -66,20 +77,17 @@ export function isYouTubeUrl(input) {
   return parseYouTubeId(input) !== null && /youtu/.test(String(input));
 }
 
-/**
- * Ask YouTube for the video's details and caption tracks.
- */
-export async function getCaptionTracks(videoId, { fetchImpl = globalThis.fetch } = {}) {
+async function askPlayer(videoId, app, fetchImpl) {
   const response = await fetchImpl(PLAYER_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'User-Agent': `com.google.android.youtube/${ANDROID_CLIENT.clientVersion} (Linux; U; Android 14) gzip`,
-      'X-Youtube-Client-Name': '3',
-      'X-Youtube-Client-Version': ANDROID_CLIENT.clientVersion,
+      'User-Agent': app.userAgent,
+      'X-Youtube-Client-Name': app.id,
+      'X-Youtube-Client-Version': app.client.clientVersion,
     },
     body: JSON.stringify({
-      context: { client: ANDROID_CLIENT },
+      context: { client: { ...app.client, hl: 'en', gl: 'US' }, ...(app.thirdParty ? { thirdParty: app.thirdParty } : {}) },
       videoId,
       contentCheckOk: true,
       racyCheckOk: true,
@@ -100,6 +108,33 @@ export async function getCaptionTracks(videoId, { fetchImpl = globalThis.fetch }
     const code = /bot/i.test(reason) ? 'blocked' : status === 'LOGIN_REQUIRED' ? 'login_required' : 'unplayable';
     throw new YouTubeError(`YouTube won't share this video: ${reason}`, code);
   }
+  return data;
+}
+
+/**
+ * Ask YouTube for the video's details and caption tracks, trying each app's
+ * request in turn until one isn't refused.
+ */
+export async function getCaptionTracks(videoId, { fetchImpl = globalThis.fetch, attempts = 1 } = {}) {
+  let data;
+  let used;
+  let lastError;
+  // From cloud servers YouTube refuses some requests and not others, so
+  // callers there can ask for a few rounds.
+  for (let round = 0; round < attempts && !data; round++) {
+    for (const app of CLIENTS) {
+      try {
+        data = await askPlayer(videoId, app, fetchImpl);
+        used = app.name;
+        break;
+      } catch (error) {
+        lastError = error;
+        // A private or removed video won't be any different for another app.
+        if (error.code === 'unplayable') throw error;
+      }
+    }
+  }
+  if (!data) throw lastError;
 
   const details = data?.videoDetails || {};
   const rawTracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
@@ -109,6 +144,7 @@ export async function getCaptionTracks(videoId, { fetchImpl = globalThis.fetch }
     title: details.title || '',
     author: details.author || '',
     durationSeconds: Number(details.lengthSeconds) || 0,
+    client: used,
     tracks: rawTracks.map((track) => ({
       languageCode: track.languageCode,
       name: track.name?.simpleText || track.name?.runs?.map((r) => r.text).join('') || track.languageCode,
@@ -116,6 +152,14 @@ export async function getCaptionTracks(videoId, { fetchImpl = globalThis.fetch }
       baseUrl: track.baseUrl,
     })),
   };
+}
+
+/** For testing: ask one named app's request directly. */
+export async function getCaptionTracksWith(videoId, appName, { fetchImpl = globalThis.fetch } = {}) {
+  const app = CLIENTS.find((c) => c.name === appName);
+  if (!app) throw new Error(`No client called ${appName}`);
+  const data = await askPlayer(videoId, app, fetchImpl);
+  return (data?.captions?.playerCaptionsTracklistRenderer?.captionTracks || []).map((t) => ({ languageCode: t.languageCode, kind: t.kind || 'manual', baseUrl: t.baseUrl }));
 }
 
 /**

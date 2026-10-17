@@ -21,7 +21,9 @@ export async function onRequestGet({ request }) {
   if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return json({ error: "That doesn't look like a YouTube video ID.", code: 'bad_link' }, 400);
 
   try {
-    const info = await getCaptionTracks(videoId);
+    // YouTube refuses many requests from Cloudflare's servers. Two quick
+    // rounds here; the page retries with fresh requests if both fail.
+    const info = await getCaptionTracks(videoId, { attempts: 2 });
     if (url.searchParams.get('captions') !== '1') {
       // Caption links stay valid for several hours.
       return json(info, 200, 'public, max-age=1800');
