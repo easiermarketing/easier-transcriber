@@ -15,7 +15,7 @@ export default function Footer() {
             </div>
             <p className="text-sm text-lightGrey/80">
               Files are transcribed inside your browser. Your audio and transcripts never leave your device, and we
-              don't store or see anything. For YouTube links, we ask YouTube for the video's captions and that's all.
+              don't store or see anything you transcribe. If you give us your email address, that is all we keep. For YouTube links, we ask YouTube for the video's captions and that's all.
             </p>
           </div>
 

@@ -3,6 +3,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import BrowserWarning from './components/BrowserWarning';
 import UploadZone from './components/UploadZone';
+import EmailSignup from './components/EmailSignup';
 import LinkInput from './components/LinkInput';
 import ModelStatus from './components/ModelStatus';
 import ProgressBar from './components/ProgressBar';
@@ -378,6 +379,7 @@ export default function App() {
         {phase === 'done' && transcript && (
           <section className="space-y-8 mb-12">
             <TranscriptOutput transcript={transcript} />
+            <EmailSignup />
             <div className="text-center">
               <button
                 onClick={reset}
