@@ -4,8 +4,8 @@
  * Cloudflare Pages Function behind the optional email box. It receives an
  * address and nothing else, and sends no email itself.
  *
- * With RESEND_API_KEY and RESEND_AUDIENCE_ID set, it adds the address to the
- * Resend audience that the welcome sequence reads. Without them (previews),
+ * With RESEND_API_KEY and RESEND_SEGMENT_ID set, it adds the address to the
+ * Resend segment that the welcome sequence reads. Without them (previews),
  * it checks the address and stores nothing.
  */
 
@@ -33,7 +33,7 @@ export async function onRequestPost({ request, env }) {
     return json({ error: "That doesn't look like an email address. Check it and try again." }, 400);
   }
 
-  if (!env.RESEND_API_KEY || !env.RESEND_AUDIENCE_ID) {
+  if (!env.RESEND_API_KEY || !env.RESEND_SEGMENT_ID) {
     // Preview addresses accept and drop the address so the box can be tried.
     // The real site refuses, so nobody is told they're on a list that doesn't exist.
     const live = ['transcribe.easiernow.co', 'easier-transcribe.pages.dev'].includes(new URL(request.url).hostname);
@@ -41,10 +41,10 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: true, stored: false });
   }
 
-  const response = await fetch(`https://api.resend.com/audiences/${env.RESEND_AUDIENCE_ID}/contacts`, {
+  const response = await fetch('https://api.resend.com/contacts', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, unsubscribed: false }),
+    body: JSON.stringify({ email, unsubscribed: false, segments: [{ id: env.RESEND_SEGMENT_ID }] }),
   });
   if (!response.ok) return json({ error: "That didn't go through. Try again in a minute." }, 502);
   return json({ ok: true, stored: true });
