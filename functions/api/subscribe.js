@@ -34,6 +34,10 @@ export async function onRequestPost({ request, env }) {
   }
 
   if (!env.RESEND_API_KEY || !env.RESEND_AUDIENCE_ID) {
+    // Preview addresses accept and drop the address so the box can be tried.
+    // The real site refuses, so nobody is told they're on a list that doesn't exist.
+    const live = ['transcribe.easiernow.co', 'easier-transcribe.pages.dev'].includes(new URL(request.url).hostname);
+    if (live) return json({ error: "Sign-up isn't open yet. Try again soon." }, 503);
     return json({ ok: true, stored: false });
   }
 
