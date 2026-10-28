@@ -24,6 +24,7 @@ export function createRunner({ onChange }) {
   let current = null;
   let worker = null;
   let workerAccurate = null;
+  let workerBackend = '';
   let cancelled = false;
   let rejectWork = null;
 
@@ -42,6 +43,7 @@ export function createRunner({ onChange }) {
     // The "More accurate" switch can change between jobs.
     const accurate = !forceWasm;
     if (worker && workerAccurate !== accurate) killWorker();
+    if (!worker) workerBackend = '';
     if (!worker) {
       worker = new Worker(new URL('./../whisper.worker.js', import.meta.url), { type: 'module' });
       workerAccurate = accurate;
@@ -66,6 +68,7 @@ export function createRunner({ onChange }) {
               update(record, { stage: 'Getting Whisper ready. First time only, about 80 MB.', modelProgress: data.progress }, false);
               break;
             case 'model-ready':
+              workerBackend = data.backend;
               started = Date.now();
               update(record, { stage: `Transcribing on ${data.backend}`, backend: data.backend, modelProgress: 1 });
               break;
@@ -99,6 +102,11 @@ export function createRunner({ onChange }) {
           }
         };
         w.onerror = (event) => reject(new Error(event.message || 'Something went wrong in the transcriber.'));
+        // A worker that is already set up from an earlier job says nothing more about its model.
+        if (workerBackend) {
+          started = Date.now();
+          update(record, { stage: `Transcribing on ${workerBackend}`, backend: workerBackend, modelProgress: 1 });
+        }
         w.postMessage({ type: 'transcribe', audio, forceWasm, wasmPaths: WASM_PATHS });
       };
       attach();
