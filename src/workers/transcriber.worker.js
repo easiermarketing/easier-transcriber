@@ -1,6 +1,6 @@
 /**
  * Web Worker for Whisper transcription.
- * Loads the model and runs inference off the main thread, in ~1 minute
+ * Loads the model and runs inference off the main thread, in ~30 second
  * blocks so the page can show real progress and text as it arrives.
  *
  * With a working GPU (WebGPU) it uses Whisper small. Without one it uses
@@ -17,10 +17,12 @@ env.backends.onnx.wasm.numThreads = Math.min(8, Math.max(2, Math.floor((navigato
 
 const GPU_MODEL = 'onnx-community/whisper-small.en';
 const CPU_MODEL = 'onnx-community/whisper-base.en';
-const BLOCK_SECONDS = 60;
+const BLOCK_SECONDS = 30;
 // Some GPUs (and some browser setups) accept WebGPU work but crawl through
 // it. A one-second test run must finish within this time or we use the CPU.
-const GPU_TEST_MS = 30000;
+// The first run also compiles the GPU shaders, which can take over 30 seconds
+// on a phone, and falling back means downloading a second model.
+const GPU_TEST_MS = 120000;
 // Setting the model up on the GPU (after any download) must finish within this.
 const GPU_SETUP_MS = 60000;
 

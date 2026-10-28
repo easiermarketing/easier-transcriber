@@ -14,6 +14,7 @@ export default function ProgressBar({ progress, statusMessage, estimatedTime, on
           <p className="text-xs text-[var(--fg-muted)]">
             {percentage}% done
             {estimatedTime > 0 && <span className="ml-2 text-[var(--brand)]">· about {formatTimeShort(estimatedTime)} left</span>}
+            {percentage === 0 && estimatedTime === 0 && /^Transcribing/.test(statusMessage || '') && <span className="ml-2">· working on the first part, the time left shows once it finishes</span>}
           </p>
         </div>
         <button
