@@ -22,7 +22,7 @@ English
 
 Press the button on any page with a video or audio. See which is which. Pick one. Get the transcript.
 
-It is free. No account. Nothing is uploaded.
+It is free. No account. No limits. No paid plan. Nothing is uploaded.
 
 HOW IT WORKS
 1. Open a page with a video or audio.
@@ -41,6 +41,7 @@ WHAT YOU GET
 - Shows the title, thumbnail and length of each, so you can tell them apart
 - Saved history that survives a refresh and a restart. Open, search or delete any time
 - Copy or download as text, text with times, SRT or VTT
+- Start in Claude or Start in ChatGPT: opens the app with your transcript and a ready prompt for a summary and action items
 - A small 80 MB model by default. A 500 MB "More accurate" model if you have a graphics chip
 
 PRIVATE BY DESIGN
@@ -83,7 +84,7 @@ Paste each line into the matching field in the developer dashboard.
 - Sold to third parties: No.
 - Used for purposes unrelated to the single purpose: No.
 - Used for creditworthiness or lending: No.
-- Privacy policy: link to privacy.md, published at a public address (to be set up).
+- Privacy policy: https://easier-transcribe.pages.dev/privacy/ (the page is built on branch feat/privacy-page and goes live with the next production deploy, which needs Anthony's typed line).
 
 ## Notes for the team
 

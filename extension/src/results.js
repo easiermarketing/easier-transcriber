@@ -1,4 +1,5 @@
 import { formatMinutes } from '@local/blocks.js';
+import { AI_APPS, buildAskPrompt } from '@app/lib/askAI.js';
 import { FORMAT_EXTENSIONS, formatTranscript } from '@local/formats.js';
 import { getAccurate, setAccurate } from '@app/lib/modelChoice.js';
 import { clearRecords, deleteRecord, keepStorage, listRecords, saveRecord } from './lib/db.js';
@@ -119,6 +120,8 @@ function renderMain() {
       <span class="spacer"></span>
       <button class="btn" data-act="copy">Copy</button>
       <button class="btn primary" data-act="download">Download</button>
+      <button class="btn" data-act="ask-claude">Start in Claude</button>
+      <button class="btn" data-act="ask-chatgpt">Start in ChatGPT</button>
       <button class="btn" data-act="delete">Delete</button>
     </div><div id="text" class="transcript"></div></div></div>`;
   }
@@ -180,6 +183,13 @@ document.addEventListener('click', async (event) => {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } else if (act.startsWith('ask-')) {
+    const app = AI_APPS[act.slice(4)];
+    const plain = formatTranscript({ segments: r.segments || [] }, 'text', {});
+    const { prompt, needsPaste } = buildAskPrompt(plain, r.title);
+    if (needsPaste) await navigator.clipboard.writeText(plain);
+    window.open(app.url(prompt), '_blank', 'noopener');
+    toast(needsPaste ? `Transcript copied. Paste it into ${app.name}.` : `Opening ${app.name}`);
   } else if (act === 'delete') {
     if (!confirm('Delete this transcript from this device?')) return;
     runner.cancel(r.id);

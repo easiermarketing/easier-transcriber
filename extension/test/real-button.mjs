@@ -76,6 +76,7 @@ try {
   await results.reload({ waitUntil: 'domcontentloaded' });
   await results.waitForFunction(() => [...(globalThis.__easier?.records?.values() ?? [])].some((r) => r.status === 'done'), { timeout: 15000 });
   console.log('after refresh: transcript still saved');
+  console.log('ask buttons:', await results.$$eval('[data-act^=ask-]', (b) => b.map((x) => x.textContent)));
   if (shots) await results.screenshot({ path: `${shots}/real-${mode}-3-after-refresh.png` });
 } finally {
   await browser.close();
