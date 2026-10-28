@@ -33,7 +33,7 @@ if (mode === 'local') {
 
 const browser = await puppeteer.launch({
   executablePath: chrome,
-  headless: false,
+  headless: process.env.HEADED === '1' ? false : true,
   pipe: true,
   userDataDir: mkdtempSync(join(tmpdir(), 'easier-profile-')),
   enableExtensions: [dist],
@@ -58,6 +58,8 @@ try {
   await new Promise((r) => setTimeout(r, 1500));
   console.log('note:', await popup.$eval('#note', (e) => `${e.textContent} [${e.title}]`));
   console.log(await popup.$$eval('.item', (els) => els.slice(0, 6).map((e) => `${e.querySelector('b').textContent} | ${e.querySelector('small').textContent}`)));
+  const shots = process.env.SHOTS;
+  if (shots) await popup.screenshot({ path: `${shots}/real-${mode}-1-popup.png` });
   const resultsPromise = browser.waitForTarget((t) => t.url().startsWith(`${ext}/results.html`), { timeout: 20000 });
   await popup.evaluate(() => document.querySelector('[data-pick]')?.click());
   const results = await (await resultsPromise).asPage();
@@ -69,6 +71,12 @@ try {
     const r = [...globalThis.__easier.records.values()][0];
     return { status: r.status, method: r.method, error: r.error, segments: r.segments.length, first: r.segments.slice(0, 2).map((s) => s.text) };
   }));
+  if (shots) await results.screenshot({ path: `${shots}/real-${mode}-2-result.png` });
+  // Refresh and reopen: the transcript must still be there.
+  await results.reload({ waitUntil: 'domcontentloaded' });
+  await results.waitForFunction(() => [...(globalThis.__easier?.records?.values() ?? [])].some((r) => r.status === 'done'), { timeout: 15000 });
+  console.log('after refresh: transcript still saved');
+  if (shots) await results.screenshot({ path: `${shots}/real-${mode}-3-after-refresh.png` });
 } finally {
   await browser.close();
   server?.close();

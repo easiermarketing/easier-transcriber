@@ -151,9 +151,10 @@ if (!globalThis.__easierLoaded) {
       if (linked >= MAX_LINKED) break;
       const id = youTubeIdFromLink(a.href);
       if (!id || seen.has(`yt:${id}`) || a.closest('.ytp-chrome-bottom, .ytp-ce-element, .ytp-endscreen-content, ytd-miniplayer')) continue;
+      const spoken = /\s+\d+ (?:hours?|minutes?|seconds?)(?:,? (?:and )?\d+ (?:hours?|minutes?|seconds?))*$/i; // aria-label ends with the spoken length
       const title =
         clean(a.getAttribute('title')) ||
-        clean(a.getAttribute('aria-label')) ||
+        clean(a.getAttribute('aria-label')).replace(spoken, '') ||
         clean(a.querySelector('#video-title, yt-formatted-string')?.textContent) ||
         clean(a.textContent);
       if (!title && onYouTube) continue; // thumbnail-only link, its text link comes next
