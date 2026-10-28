@@ -70,6 +70,7 @@ function load({ forceWasm = false } = {}) {
     };
 
     if (!forceWasm && (await hasWebGPU())) {
+      self.postMessage({ type: 'model-info', mb: 500 });
       const guard = stallGuard(GPU_SETUP_MS);
       try {
         transcriber = await Promise.race([
@@ -99,6 +100,7 @@ function load({ forceWasm = false } = {}) {
       }
     }
 
+    self.postMessage({ type: 'model-info', mb: 80 });
     transcriber = await pipeline('automatic-speech-recognition', CPU_MODEL, {
       device: 'wasm',
       dtype: 'q8',

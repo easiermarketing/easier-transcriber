@@ -10,7 +10,7 @@ function onSlowConnection() {
 
 // Plain words for a long job: what is happening, that nothing is uploaded,
 // and what to do to keep it going. Shown for big files and slow connections.
-export default function WorkingNotes({ fileSize, modelReady }) {
+export default function WorkingNotes({ modelMB, fileSize, modelReady }) {
   const [elapsed, setElapsed] = useState(0);
   const [slow] = useState(onSlowConnection);
 
@@ -31,7 +31,7 @@ export default function WorkingNotes({ fileSize, modelReady }) {
       )}
       {!modelReady && (big || slow) && (
         <p>
-          The first run downloads Whisper, about 500 MB.
+          The first run downloads Whisper{modelMB ? `, about ${modelMB} MB` : ''}.
           {slow ? ' You look to be on a slow or mobile connection, so Wi-Fi is better if you can.' : ''} Next time it
           loads from your browser in seconds.
         </p>

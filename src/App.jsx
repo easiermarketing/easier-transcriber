@@ -111,6 +111,9 @@ export default function App() {
 
   const handleWorkerMessage = ({ data }) => {
     switch (data.type) {
+      case 'model-info':
+        setModel((m) => ({ ...m, mb: data.mb }));
+        break;
       case 'model-progress':
         setModel((m) => ({ ...m, progress: data.progress }));
         break;
@@ -359,9 +362,9 @@ export default function App() {
               <p className="font-semibold text-lg truncate">{job.label}</p>
             </div>
             {job.kind === 'file' && !model.ready && (
-              <ModelStatus modelProgress={model.progress} modelReady={model.ready} backend={model.backend} />
+              <ModelStatus modelMB={model.mb} modelProgress={model.progress} modelReady={model.ready} backend={model.backend} />
             )}
-            <WorkingNotes fileSize={fileRef.current?.size || 0} modelReady={model.ready} />
+            <WorkingNotes modelMB={model.mb} fileSize={fileRef.current?.size || 0} modelReady={model.ready} />
             <ProgressBar
               progress={status.progress}
               statusMessage={status.message}

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { formatTimeShort } from '../lib/utils';
 
-export default function ModelStatus({ modelProgress, modelReady, backend }) {
+export default function ModelStatus({ modelMB, modelProgress, modelReady, backend }) {
   const [now, setNow] = useState(Date.now());
   const started = useRef(Date.now());
   const downloadStarted = useRef(0);
@@ -26,7 +26,7 @@ export default function ModelStatus({ modelProgress, modelReady, backend }) {
   const title = preparing ? 'Setting Whisper up on your device' : downloading ? 'Downloading the Whisper model' : 'Getting Whisper ready';
   const detail = preparing
     ? 'The download is done. Whisper now sets itself up, which can take a minute or two the first time.'
-    : "First time only, about 500 MB. After that it loads from your browser's cache.";
+    : `First time only${modelMB ? `, about ${modelMB} MB` : ''}. After that it loads from your browser's cache.`;
 
   return (
     <div className="space-y-3 bg-[var(--card)] border border-[var(--line-soft)] p-6 rounded-[var(--r-m)]" role="status">
