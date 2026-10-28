@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Easier Transcribe</title>
+    <link rel="stylesheet" href="./ui.css" />
+    <link rel="stylesheet" href="./results.css" />
+  </head>
+  <body>
+    <header class="top">
+      <span class="mark" aria-hidden="true"></span>
+      <h1>Easier Transcribe</h1>
+      <p class="privacy">Runs on your device. Nothing is uploaded.</p>
+    </header>
+    <div class="layout">
+      <aside class="side" aria-label="Your transcripts">
+        <input id="search" class="search" type="search" placeholder="Search your transcripts" aria-label="Search your transcripts" />
+        <ul id="history" class="history"></ul>
+        <div class="side-foot">
+          <label class="check">
+            <input id="accurate" type="checkbox" />
+            <span><b>More accurate</b><br />Off: a small 80 MB model on your processor. On: a 500 MB model on your graphics chip, if you have one.</span>
+          </label>
+          <button id="clear" class="link danger" type="button">Delete all transcripts</button>
+        </div>
+      </aside>
+      <main id="main" class="main" aria-live="polite"></main>
+    </div>
+    <script type="module" src="./results.js"></script>
+  </body>
+</html>

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:extension": "node extension/build.mjs",
+    "test:extension": "node extension/test/e2e.mjs"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
@@ -16,11 +18,13 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@ffmpeg/core": "^0.12.10",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
+    "puppeteer-core": "^25.16.0",
     "tailwindcss": "^3.4.17",
     "terser": "^5.46.1",
     "vite": "^6.0.5"

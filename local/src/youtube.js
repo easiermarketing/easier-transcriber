@@ -163,6 +163,30 @@ export async function getCaptionTracksWith(videoId, appName, { fetchImpl = globa
 }
 
 /**
+ * The smallest audio-only stream YouTube offers directly (no signing), for
+ * videos with no captions. Returns null when YouTube only offers protected ones.
+ */
+export async function getAudioStream(videoId, { fetchImpl = globalThis.fetch } = {}) {
+  let lastError;
+  for (const app of CLIENTS) {
+    try {
+      const data = await askPlayer(videoId, app, fetchImpl);
+      const formats = (data?.streamingData?.adaptiveFormats || [])
+        .filter((f) => /^audio\//.test(f.mimeType || '') && f.url)
+        .sort((a, b) => Number(a.contentLength || Infinity) - Number(b.contentLength || Infinity));
+      if (formats.length) {
+        const f = formats[0];
+        return { url: f.url, mime: f.mimeType.split(';')[0], size: Number(f.contentLength) || 0 };
+      }
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (lastError) throw lastError;
+  return null;
+}
+
+/**
  * Choose the best track: the asked-for language written by a person, then
  * the asked-for language auto-generated, then any English, then anything.
  */

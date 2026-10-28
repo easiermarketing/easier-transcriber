@@ -56,8 +56,14 @@ function stallGuard(ms) {
   return { promise, poke, stop: () => clearTimeout(timer) };
 }
 
-function load({ forceWasm = false } = {}) {
+function load({ forceWasm = false, wasmPaths } = {}) {
   if (loading) return loading;
+  // The Chrome extension can't load code from a CDN, so it ships ONNX Runtime itself.
+  // (Its CSP also forbids the blob: script the wasm cache would make.)
+  if (wasmPaths) {
+    env.backends.onnx.wasm.wasmPaths = wasmPaths;
+    env.useWasmCache = false;
+  }
   loading = (async () => {
     const files = new Map();
     const progress_callback = (event) => {

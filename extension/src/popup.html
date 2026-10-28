@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Easier Transcribe</title>
+    <link rel="stylesheet" href="./ui.css" />
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <header>
+      <span class="mark" aria-hidden="true"></span>
+      <h1>Pick what to transcribe</h1>
+    </header>
+    <p id="note" class="note" role="status">Looking for videos on this page...</p>
+    <ul id="list" class="list"></ul>
+    <div id="more" class="more" hidden></div>
+    <footer>
+      <button id="history" class="link" type="button">Open my saved transcripts</button>
+      <span>Free. Runs on your device.</span>
+    </footer>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

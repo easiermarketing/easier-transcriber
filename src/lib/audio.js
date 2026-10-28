@@ -13,11 +13,15 @@ let ffmpeg = null;
 async function getFFmpeg() {
   if (ffmpeg) return ffmpeg;
   const instance = new FFmpeg();
-  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
-  await instance.load({
-    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-  });
+  // The Chrome extension ships ffmpeg itself and can't use blob: scripts.
+  const local = globalThis.EASIER_FFMPEG_BASE;
+  const baseURL = local || 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
+  await instance.load(local
+    ? { coreURL: `${baseURL}/ffmpeg-core.js`, wasmURL: `${baseURL}/ffmpeg-core.wasm` }
+    : {
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+      });
   ffmpeg = instance;
   return ffmpeg;
 }

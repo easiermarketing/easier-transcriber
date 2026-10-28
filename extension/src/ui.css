@@ -1,0 +1,62 @@
+@import "../../src/styles/tokens.css";
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  background: var(--wash) var(--bg-soft);
+  background-attachment: fixed;
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select { font: inherit; color: inherit; }
+
+:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--focus-off); }
+
+.mark {
+  width: 28px; height: 28px; flex: none;
+  border-radius: var(--r-s);
+  background: var(--gradient-brand);
+  position: relative;
+}
+.mark::before, .mark::after {
+  content: ""; position: absolute; left: 7px; height: 3px; border-radius: 2px; background: var(--on-brand);
+}
+.mark::before { top: 9px; width: 14px; }
+.mark::after { top: 16px; width: 9px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-3);
+  min-height: 36px; padding: 0 var(--sp-6);
+  border: 1px solid var(--line); border-radius: var(--r-pill);
+  background: var(--card); cursor: pointer; font-weight: var(--fw-ui);
+  transition: background var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
+}
+.btn:hover { border-color: var(--brand); }
+.btn.primary { background: var(--brand-fill); color: var(--on-brand); border-color: transparent; }
+.btn.primary:hover { background: var(--brand-hover); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+.link { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; color: var(--brand); font-size: var(--fs-xs); }
+.link.danger { color: var(--bad); }
+
+.badge {
+  display: inline-block; padding: 0 var(--sp-3); border-radius: var(--r-pill);
+  font-size: var(--fs-xs); line-height: 20px; font-weight: var(--fw-ui);
+  background: var(--brand-soft); color: var(--brand);
+}
+.badge.ok { background: var(--ok-soft); color: var(--ok); }
+.badge.warn { background: var(--warn-soft); color: var(--warn); }
+.badge.bad { background: var(--bad-soft); color: var(--bad); }
+
+.thumb {
+  width: 96px; height: 54px; flex: none; border-radius: var(--r-xs);
+  background: var(--brand-soft) center / cover no-repeat; object-fit: cover;
+  display: grid; place-items: center; color: var(--brand); font-size: var(--fs-xs);
+}
+
+.bar { height: 8px; border-radius: var(--r-pill); background: var(--line-soft); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--brand-fill); border-radius: var(--r-pill); transition: width var(--dur-2) var(--ease); }
