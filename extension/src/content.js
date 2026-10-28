@@ -157,7 +157,7 @@ if (!globalThis.__easierLoaded) {
         clean(a.querySelector('#video-title, yt-formatted-string')?.textContent) ||
         clean(a.textContent);
       if (!title && onYouTube) continue; // thumbnail-only link, its text link comes next
-      if (/^(next|previous) ?\(/i.test(title)) continue; // player buttons
+      if (/^(next|previous) ?\(/i.test(title) || /^[\d:]+$/.test(title)) continue; // player buttons, duration overlays
       linked++;
       add({ id: `yt:${id}`, kind: 'youtube', ytId: id, title: title || 'YouTube video', thumb: ytThumb(id), host: 'youtube.com', linked: true });
     }

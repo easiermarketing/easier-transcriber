@@ -19,8 +19,15 @@ async function activeTab() {
 }
 
 async function scan(tabId) {
-  await chrome.scripting.executeScript({ target: { tabId, allFrames: true }, files: ['content.js'] });
-  const frames = await chrome.scripting.executeScript({ target: { tabId, allFrames: true }, func: () => globalThis.__easierScan?.() ?? null });
+  // Frames the extension has no access to can make an all-frames call fail, so fall back to the top frame.
+  let allFrames = true;
+  try {
+    await chrome.scripting.executeScript({ target: { tabId, allFrames }, files: ['content.js'] });
+  } catch {
+    allFrames = false;
+    await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
+  }
+  const frames = await chrome.scripting.executeScript({ target: { tabId, allFrames }, func: () => globalThis.__easierScan?.() ?? null });
   return frames.filter((f) => f.result).map((f) => ({ frameId: f.frameId, ...f.result }));
 }
 
@@ -79,7 +86,7 @@ async function main() {
     items = merge(frames);
     frameCount = frames.length;
     const foreign = frames.find((f) => f.top)?.foreign || 0;
-    if (foreign && !(await chrome.permissions.contains({ origins: ALL_SITES }))) {
+    if (foreign > frames.length - 1 && !(await chrome.permissions.contains({ origins: ALL_SITES }))) {
       $('more').hidden = false;
       $('more').innerHTML = `This page has ${foreign} player${foreign > 1 ? 's' : ''} from other sites that may hide a video.<br />
         <button class="btn" id="look">Look inside them</button>`;
@@ -90,7 +97,8 @@ async function main() {
     $('note').textContent = items.length
       ? `Found ${items.length} on this page. ${items.some((i) => i.playing) ? 'The one playing is first.' : ''}`
       : 'No video or audio found on this page.';
-  } catch {
+  } catch (error) {
+    $('note').title = String(error?.message || error);
     $('note').textContent = "This page can't be scanned. Open a page with a video and press the button again.";
   }
   await render();

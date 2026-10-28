@@ -69,7 +69,7 @@ await build({
 
 // 3. Files that are copied as they are.
 const manifest = JSON.parse(readFileSync(join(here, 'manifest.json'), 'utf8'));
-if (test) manifest.host_permissions.push('http://127.0.0.1/*');
+if (test) manifest.host_permissions.push('http://127.0.0.1/*', ...(process.env.EXT_TEST_HOSTS || '').split(',').filter(Boolean));
 writeFileSync(join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
 mkdirSync(join(outDir, 'ort'), { recursive: true });

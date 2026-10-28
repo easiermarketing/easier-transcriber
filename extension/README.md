@@ -22,6 +22,8 @@ Check it end to end (needs Chrome, ffmpeg and a short speech clip, see the top o
 EXT_TEST=1 npm run build:extension      # builds extension/dist-test, which also trusts http://127.0.0.1
 FIXTURES=<folder> node extension/test/e2e.mjs
 node extension/test/youtube.mjs         # live YouTube captions check
+node extension/test/extras.mjs <iframe|iframe-granted|big|gpu|ytaudio>   # more cases, see the top of that file
+node extension/test/real-button.mjs     # production build in a headed Chrome with a fresh profile
 ```
 
 ## How it works

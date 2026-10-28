@@ -154,7 +154,8 @@ export function createRunner({ onChange }) {
     cancelled = false;
     await update(record, { status: 'working', stage: 'Starting', progress: 0, eta: 0, error: null, errorKind: null, segments: [] });
 
-    if (item.ytId) {
+    // ?skipcaptions on the results page is for testing the audio path.
+    if (item.ytId && !new URLSearchParams(location.search).has('skipcaptions')) {
       const found = await captions(record);
       if (found?.segments?.length) {
         await update(record, {
