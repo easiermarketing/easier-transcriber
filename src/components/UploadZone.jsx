@@ -3,22 +3,16 @@ import { isValidFile, formatFileSize, ALL_SUPPORTED } from '../lib/utils';
 
 function UploadIcon({ active }) {
   return (
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true" className="mx-auto">
-      <rect x="1" y="1" width="46" height="46" rx="23" stroke="url(#upload-ring)" strokeWidth="2" />
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true" className="mx-auto text-[var(--brand)]">
+      <rect x="1" y="1" width="46" height="46" rx="23" stroke="currentColor" strokeWidth="2" />
       <path
         d={active ? 'M24 14v18m0 0-7-7m7 7 7-7' : 'M24 32V14m0 0-7 7m7-7 7 7'}
-        stroke="#FFFFFF"
+        stroke="currentColor"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <defs>
-        <linearGradient id="upload-ring" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#6EF6FF" />
-          <stop offset="0.5" stopColor="#6E46FF" />
-          <stop offset="1" stopColor="#0694FF" />
-        </linearGradient>
-      </defs>
+      
     </svg>
   );
 }
@@ -83,8 +77,8 @@ export default function UploadZone({ onFileSelect, disabled }) {
       tabIndex={disabled ? -1 : 0}
       aria-label="Choose an audio or video file to transcribe"
       className={`
-        relative border-2 border-dashed rounded-2xl p-12 transition-all focus:outline-none focus-visible:border-cyan
-        ${isDragging && !disabled ? 'border-cyan bg-darkGrey/50' : 'border-darkGrey hover:border-purple'}
+        relative border border-[var(--line)] rounded-[var(--r-l)] p-12 transition-all focus:outline-none focus-visible:border-[var(--brand)]
+        ${isDragging && !disabled ? 'border-[var(--brand)] bg-[var(--bg-soft)]' : 'border-[var(--line)] hover:border-[var(--brand)]'}
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}
     >
@@ -101,16 +95,16 @@ export default function UploadZone({ onFileSelect, disabled }) {
           <UploadIcon active={isDragging} />
         </div>
         <h3 className="text-xl font-bold mb-2">{isDragging ? 'Drop it here' : 'Drop an audio or video file'}</h3>
-        <p className="text-lightGrey/80 text-sm mb-6">
-          or <span className="text-cyan font-semibold">choose one from your device</span>
+        <p className="text-[var(--fg-muted)] text-sm mb-6">
+          or <span className="text-[var(--brand)] font-semibold">choose one from your device</span>
         </p>
-        <div className="inline-block text-xs text-lightGrey/80 bg-darkGrey px-4 py-2 rounded-full">
+        <div className="inline-block text-xs text-[var(--fg-muted)] bg-[var(--bg-soft)] px-4 py-2 rounded-full">
           {ALL_SUPPORTED.map((ext) => ext.toUpperCase()).join(', ')}
         </div>
       </div>
 
       {error && (
-        <div className="relative mt-6 p-4 bg-red-900/20 border border-red-700 rounded-lg text-red-400 text-sm">{error}</div>
+        <div className="relative mt-6 p-4 bg-[var(--bad-soft)] border border-[var(--bad)] rounded-[var(--r-m)] text-[var(--bad)] text-sm">{error}</div>
       )}
     </div>
   );

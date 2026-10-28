@@ -6,6 +6,7 @@ import UploadZone from './components/UploadZone';
 import EmailSignup from './components/EmailSignup';
 import LinkInput from './components/LinkInput';
 import ModelStatus from './components/ModelStatus';
+import WorkingNotes from './components/WorkingNotes';
 import ProgressBar from './components/ProgressBar';
 import TranscriptOutput from './components/TranscriptOutput';
 import HelperPanel from './components/HelperPanel';
@@ -62,6 +63,13 @@ export default function App() {
   const resultRef = useRef(null);
 
   useEffect(() => () => workerRef.current?.terminate(), []);
+  // Keep a phone screen awake while a long job runs.
+  useEffect(() => {
+    if (phase !== 'working' || !navigator.wakeLock) return undefined;
+    let lock;
+    navigator.wakeLock.request('screen').then((l) => { lock = l; }).catch(() => {});
+    return () => { lock?.release().catch(() => {}); };
+  }, [phase]);
   useEffect(() => {
     if (!resultRef.current || !['done', 'helper', 'error'].includes(phase)) return;
     // Bring the result to just under the sticky header.
@@ -311,16 +319,17 @@ export default function App() {
   const liveTranscript = partial.length ? { title: job?.label, segments: partial } : null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-darkBg text-textLight">
+    <div className="min-h-screen flex flex-col text-[var(--fg)]">
       <Header />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-12">
         <section className="mb-12 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-cyan via-purple to-blue bg-clip-text text-transparent leading-tight">
+          <p className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-[var(--brand-soft)] text-[var(--brand)] text-xs font-medium">Free, private, no sign-up</p>
+          <h2 className="text-3xl md:text-5xl font-semibold mb-4 text-[var(--fg)] leading-tight">
             Turn any video, audio or YouTube link into text
           </h2>
-          <p className="text-xl text-lightGrey mb-3">Free. No sign-up, no limits, no ads.</p>
-          <p className="text-lightGrey/80 max-w-2xl mx-auto mb-5">
+          <p className="text-xl text-[var(--fg-muted)] mb-3">No limits, no ads.</p>
+          <p className="text-[var(--fg-muted)] max-w-2xl mx-auto mb-5">
             Whisper runs right here in your browser, so your files never leave your device.
           </p>
         </section>
@@ -337,13 +346,14 @@ export default function App() {
 
         {working && (
           <section className="space-y-4 mb-8">
-            <div className="bg-darkGrey p-6 rounded-xl">
-              <p className="text-xs text-lightGrey/70">{job.kind === 'file' ? 'File' : 'Link'}</p>
+            <div className="bg-[var(--bg-soft)] p-6 rounded-[var(--r-m)]">
+              <p className="text-xs text-[var(--fg-faint)]">{job.kind === 'file' ? 'File' : 'Link'}</p>
               <p className="font-semibold text-lg truncate">{job.label}</p>
             </div>
             {job.kind === 'file' && !model.ready && (
               <ModelStatus modelProgress={model.progress} modelReady={model.ready} backend={model.backend} />
             )}
+            <WorkingNotes fileSize={fileRef.current?.size || 0} modelReady={model.ready} />
             <ProgressBar
               progress={status.progress}
               statusMessage={status.message}
@@ -363,12 +373,12 @@ export default function App() {
 
         {phase === 'error' && (
           <section className="mb-12 space-y-4">
-            <div className="p-6 bg-red-900/20 border border-red-700 rounded-xl">
-              <p className="font-semibold text-red-300 mb-1">That didn't work</p>
-              <p className="text-sm text-red-200/90">{error}</p>
+            <div className="p-6 bg-[var(--bad-soft)] border border-[var(--bad)] rounded-[var(--r-l)]">
+              <p className="font-semibold text-[var(--bad)] mb-1">That didn't work</p>
+              <p className="text-sm text-[var(--fg)]">{error}</p>
             </div>
             <div className="text-center">
-              <button onClick={reset} className="px-6 py-3 rounded-full text-sm font-semibold bg-darkGrey hover:bg-black text-textLight">
+              <button onClick={reset} className="px-6 py-3 rounded-full text-sm font-semibold bg-[var(--bg-soft)] hover:bg-[var(--bg-softest)] text-[var(--fg)]">
                 Try again
               </button>
             </div>
@@ -382,7 +392,7 @@ export default function App() {
             <div className="text-center">
               <button
                 onClick={reset}
-                className="px-8 py-4 rounded-full font-bold text-lg bg-gradient-to-r from-purple to-blue hover:opacity-90 text-white"
+                className="px-8 py-4 rounded-full font-bold text-lg bg-[var(--brand-fill)] hover:bg-[var(--brand-hover)] text-[var(--on-brand)]"
               >
                 Transcribe something else
               </button>

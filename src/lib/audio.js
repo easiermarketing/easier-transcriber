@@ -39,34 +39,55 @@ async function decodeInBrowser(arrayBuffer) {
   }
 }
 
+// Mounting the file lets ffmpeg read it straight from disk. Copying a big
+// file into ffmpeg's memory would need two to three times its size, which
+// is more than a phone has.
+async function openInput(instance, file) {
+  const dir = `/in_${Date.now()}`;
+  try {
+    await instance.createDir(dir);
+    await instance.mount('WORKERFS', { files: [file] }, dir);
+    return {
+      path: `${dir}/${file.name}`,
+      close: async () => {
+        await instance.unmount(dir).catch(() => {});
+        await instance.deleteDir(dir).catch(() => {});
+      },
+    };
+  } catch {
+    const extension = file.name.split('.').pop().toLowerCase();
+    const path = `input_${Date.now()}.${extension}`;
+    await instance.writeFile(path, await fetchFile(file));
+    return { path, close: () => instance.deleteFile(path).catch(() => {}) };
+  }
+}
+
 async function decodeWithFFmpeg(file, onProgress) {
   const instance = await getFFmpeg();
-  const extension = file.name.split('.').pop().toLowerCase();
-  const input = `input_${Date.now()}.${extension}`;
   const output = `output_${Date.now()}.f32`;
   const handleProgress = ({ progress }) => onProgress?.(Math.min(Math.max(progress, 0), 1));
 
   instance.on('progress', handleProgress);
+  const input = await openInput(instance, file);
   try {
-    await instance.writeFile(input, await fetchFile(file));
-    await instance.exec(['-i', input, '-vn', '-ac', '1', '-ar', String(SAMPLE_RATE), '-f', 'f32le', output]);
+    await instance.exec(['-i', input.path, '-vn', '-ac', '1', '-ar', String(SAMPLE_RATE), '-f', 'f32le', output]);
     const data = await instance.readFile(output);
     if (!data.byteLength) throw new Error('This file has no audio track.');
     return new Float32Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 4)).slice();
   } finally {
     instance.off('progress', handleProgress);
-    await instance.deleteFile(input).catch(() => {});
+    await input.close();
     await instance.deleteFile(output).catch(() => {});
   }
 }
 
 // The browser's own decoder is much faster than ffmpeg.wasm and reads the
 // audio in most MP4, MOV and WebM videos too, but it needs the whole file in
-// memory, so very large videos go straight to ffmpeg.
-const BROWSER_DECODE_LIMIT = 1024 * 1024 * 1024;
+// memory, so bigger files, audio or video, go straight to ffmpeg.
+const BROWSER_DECODE_LIMIT = 150 * 1024 * 1024;
 
 export async function extractAudio(file, { isVideo, onProgress } = {}) {
-  if (!isVideo || file.size < BROWSER_DECODE_LIMIT) {
+  if (file.size < BROWSER_DECODE_LIMIT) {
     try {
       return await decodeInBrowser(await file.arrayBuffer());
     } catch {

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FORMAT_EXTENSIONS, clock, formatTranscript } from '@local/formats.js';
 import { copyToClipboard, downloadBlob } from '../lib/utils';
+import { AI_APPS, buildAskPrompt } from '../lib/askAI';
 
 const TABS = [
   { id: 'text', label: 'Text' },
@@ -30,6 +31,7 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
   const [format, setFormat] = useState('text');
   const [edits, setEdits] = useState({});
   const [copied, setCopied] = useState(false);
+  const [pasteHint, setPasteHint] = useState('');
   const [maxChars, setMaxChars] = useState(84);
   const textareaRef = useRef(null);
   const isSubtitles = format === 'srt' || format === 'vtt';
@@ -45,6 +47,19 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
     if (isLive && textareaRef.current) textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
   }, [isLive, generated]);
 
+  const handleAsk = (app) => {
+    const text = edits.text ?? formatTranscript(transcript, 'text', { maxChars });
+    const { prompt, needsPaste } = buildAskPrompt(text, transcript.title);
+    if (needsPaste) {
+      copyToClipboard(text);
+      setPasteHint(`Your transcript is copied. When ${app.name} opens, press paste (Ctrl+V, or Cmd+V on a Mac) and send.`);
+    } else {
+      setPasteHint('');
+    }
+    window.open(app.url(prompt), '_blank', 'noopener');
+  };
+
+
   const handleCopy = async () => {
     await copyToClipboard(value);
     setCopied(true);
@@ -59,14 +74,14 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
   const words = value.split(/\s+/).filter(Boolean).length;
 
   return (
-    <div className="bg-darkGrey rounded-2xl p-6 space-y-4">
+    <div className="bg-[var(--bg-soft)] rounded-[var(--r-l)] p-6 space-y-4">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs text-lightGrey/70">{isLive ? 'Transcribing… text appears as it is ready' : label}</p>
+          <p className="text-xs text-[var(--fg-faint)]">{isLive ? 'Transcribing… text appears as it is ready' : label}</p>
           <h3 className="text-lg font-semibold truncate" title={transcript.title}>
             {transcript.title || 'Transcript'}
           </h3>
-          <p className="text-xs text-lightGrey/70">
+          <p className="text-xs text-[var(--fg-faint)]">
             {transcript.duration ? `${clock(transcript.duration)} · ` : ''}
             {words.toLocaleString()} words
           </p>
@@ -80,7 +95,7 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
               aria-selected={format === tab.id}
               onClick={() => setFormat(tab.id)}
               className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                format === tab.id ? 'bg-purple text-white' : 'bg-darkBg text-lightGrey hover:text-white'
+                format === tab.id ? 'bg-[var(--brand-fill)] text-[var(--on-brand)]' : 'bg-[var(--bg)] text-[var(--fg-muted)] hover:text-[var(--fg)]'
               }`}
             >
               {tab.label}
@@ -91,7 +106,7 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
 
       {isSubtitles && (
         <div className="flex items-center gap-3">
-          <label htmlFor="max-chars" className="text-xs text-lightGrey/80 whitespace-nowrap">
+          <label htmlFor="max-chars" className="text-xs text-[var(--fg-muted)] whitespace-nowrap">
             Longest subtitle
           </label>
           <input
@@ -106,9 +121,9 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
               // Changing the length rebuilds the subtitles.
               setEdits((current) => ({ ...current, srt: undefined, vtt: undefined }));
             }}
-            className="flex-1 h-1 accent-cyan cursor-pointer"
+            className="flex-1 h-1 accent-[var(--brand-fill)] cursor-pointer"
           />
-          <span className="text-xs text-cyan font-mono w-24 text-right">{maxChars} characters</span>
+          <span className="text-xs text-[var(--brand)] font-mono w-24 text-right">{maxChars} characters</span>
         </div>
       )}
 
@@ -119,27 +134,44 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
         readOnly={isLive}
         spellCheck={format === 'text'}
         aria-label="Transcript"
-        className={`w-full h-96 bg-darkBg rounded-xl p-4 text-sm leading-relaxed text-textLight border border-transparent focus:border-purple focus:outline-none ${
+        className={`w-full h-96 bg-[var(--bg)] rounded-[var(--r-m)] p-4 text-sm leading-relaxed text-[var(--fg)] border border-transparent focus:border-[var(--brand)] focus:outline-none ${
           isSubtitles ? '' : 'font-poppins'
         }`}
       />
 
+      {!isLive && value && (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-sm text-[var(--fg-muted)]">Ask an AI about this:</span>
+          {Object.entries(AI_APPS).map(([id, app]) => (
+            <button
+              key={id}
+              onClick={() => handleAsk(app)}
+              className="px-6 py-2 rounded-full text-sm font-semibold border border-[var(--line)] hover:bg-[var(--bg-softest)] text-[var(--fg)]"
+            >
+              Start in {app.name}
+            </button>
+          ))}
+          {pasteHint && <p className="w-full text-sm text-[var(--brand)]" role="status">{pasteHint}</p>}
+        </div>
+      )}
+
+
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-lightGrey/70">
+        <p className="text-xs text-[var(--fg-faint)]">
           {edits[format] !== undefined ? 'Edited. Copy or download keeps your changes.' : 'You can edit the text before copying it.'}
         </p>
         <div className="flex gap-3">
           <button
             onClick={handleCopy}
             disabled={isLive || !value}
-            className="px-6 py-2 rounded-full text-sm font-semibold bg-darkBg hover:bg-black text-textLight"
+            className="px-6 py-2 rounded-full text-sm font-semibold bg-[var(--bg)] hover:bg-[var(--bg-softest)] text-[var(--fg)]"
           >
             {copied ? 'Copied' : 'Copy'}
           </button>
           <button
             onClick={handleDownload}
             disabled={isLive || !value}
-            className="px-6 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-purple to-blue hover:opacity-90 text-white"
+            className="px-6 py-2 rounded-full text-sm font-semibold bg-[var(--brand-fill)] hover:bg-[var(--brand-hover)] text-[var(--on-brand)]"
           >
             Download {FORMAT_EXTENSIONS[format]}
           </button>

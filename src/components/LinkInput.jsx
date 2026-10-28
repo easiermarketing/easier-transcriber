@@ -32,7 +32,7 @@ export default function LinkInput({ onYouTube, onMediaLink, disabled }) {
         e.preventDefault();
         submit(link);
       }}
-      className="bg-darkGrey rounded-2xl p-6"
+      className="bg-[var(--bg-soft)] rounded-[var(--r-l)] p-6"
     >
       <label htmlFor="youtube-link" className="block text-sm font-semibold mb-3">
         Or paste a YouTube link
@@ -54,20 +54,20 @@ export default function LinkInput({ onYouTube, onMediaLink, disabled }) {
           }}
           placeholder="https://www.youtube.com/watch?v=…"
           disabled={disabled}
-          className="flex-1 min-w-0 bg-darkBg rounded-full px-5 py-3 text-sm text-textLight placeholder:text-lightGrey/40 border border-transparent focus:border-purple focus:outline-none"
+          className="flex-1 min-w-0 bg-[var(--bg)] rounded-full px-5 py-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-faint)] border border-transparent focus:border-[var(--brand)] focus:outline-none"
         />
         <button
           type="submit"
           disabled={disabled || !link.trim()}
-          className="px-6 py-3 rounded-full text-sm font-semibold bg-gradient-to-r from-purple to-blue hover:opacity-90 text-white whitespace-nowrap"
+          className="px-6 py-3 rounded-full text-sm font-semibold bg-[var(--brand-fill)] hover:bg-[var(--brand-hover)] text-[var(--on-brand)] whitespace-nowrap"
         >
           Get transcript
         </button>
       </div>
-      <p className="text-xs text-lightGrey/60 mt-3">
+      <p className="text-xs text-[var(--fg-faint)] mt-3">
         Uses the video's own captions, so most videos take a couple of seconds. A direct link to an MP3 or MP4 works too.
       </p>
-      {error && <p className="text-sm text-red-400 mt-3">{error}</p>}
+      {error && <p className="text-sm text-[var(--bad)] mt-3">{error}</p>}
     </form>
   );
 }
