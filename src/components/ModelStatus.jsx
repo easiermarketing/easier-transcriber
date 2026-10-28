@@ -29,7 +29,7 @@ export default function ModelStatus({ modelProgress, modelReady, backend }) {
     : "First time only, about 500 MB. After that it loads from your browser's cache.";
 
   return (
-    <div className="space-y-3 bg-[var(--bg-soft)] p-6 rounded-[var(--r-m)]" role="status">
+    <div className="space-y-3 bg-[var(--card)] border border-[var(--line-soft)] p-6 rounded-[var(--r-m)]" role="status">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold">{title}</p>
@@ -41,7 +41,7 @@ export default function ModelStatus({ modelProgress, modelReady, backend }) {
         </div>
         {downloading && <span className="text-xs font-bold text-[var(--brand)]">{percent}%</span>}
       </div>
-      <div className="w-full bg-[var(--bg)] rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-[var(--bg-soft)] rounded-full h-2 overflow-hidden">
         <div
           className={`h-full bg-[var(--brand-fill)] transition-all duration-300 ${downloading ? '' : 'animate-pulse'}`}
           style={{ width: downloading ? `${percent}%` : preparing ? '100%' : '12%' }}

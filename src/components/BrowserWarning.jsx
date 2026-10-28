@@ -11,7 +11,7 @@ export default function BrowserWarning() {
   if (!showWarning) return null;
 
   return (
-    <div className="bg-[var(--bg-soft)] border-l-4 border-[var(--warn-fill)] rounded-md p-4 mb-6">
+    <div className="bg-[var(--card)] border border-[var(--line-soft)] border-l-4 border-[var(--warn-fill)] rounded-md p-4 mb-6">
       <p className="font-semibold text-sm">Your browser will be slower at this</p>
       <p className="text-xs text-[var(--fg-muted)] mt-1">
         It doesn't support GPU acceleration (WebGPU), so file transcription runs on the processor instead. It still

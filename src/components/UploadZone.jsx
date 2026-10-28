@@ -77,8 +77,8 @@ export default function UploadZone({ onFileSelect, disabled }) {
       tabIndex={disabled ? -1 : 0}
       aria-label="Choose an audio or video file to transcribe"
       className={`
-        relative border border-[var(--line)] rounded-[var(--r-l)] p-12 transition-all focus:outline-none focus-visible:border-[var(--brand)]
-        ${isDragging && !disabled ? 'border-[var(--brand)] bg-[var(--bg-soft)]' : 'border-[var(--line)] hover:border-[var(--brand)]'}
+        relative bg-[var(--card)] border border-[var(--line)] rounded-[var(--r-l)] p-12 transition-all focus:outline-none focus-visible:border-[var(--brand)]
+        ${isDragging && !disabled ? 'border-[var(--brand)] bg-[var(--card)] border border-[var(--line-soft)]' : 'border-[var(--line)] hover:border-[var(--brand)]'}
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}
     >
@@ -98,7 +98,7 @@ export default function UploadZone({ onFileSelect, disabled }) {
         <p className="text-[var(--fg-muted)] text-sm mb-6">
           or <span className="text-[var(--brand)] font-semibold">choose one from your device</span>
         </p>
-        <div className="inline-block text-xs text-[var(--fg-muted)] bg-[var(--bg-soft)] px-4 py-2 rounded-full">
+        <div className="inline-block text-xs text-[var(--fg-muted)] bg-[var(--card)] border border-[var(--line-soft)] px-4 py-2 rounded-full">
           {ALL_SUPPORTED.map((ext) => ext.toUpperCase()).join(', ')}
         </div>
       </div>

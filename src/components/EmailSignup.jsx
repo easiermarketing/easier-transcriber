@@ -29,7 +29,7 @@ export default function EmailSignup() {
 
   if (state === 'done') {
     return (
-      <div className="bg-[var(--bg-soft)] p-6 rounded-[var(--r-m)] text-center" role="status">
+      <div className="bg-[var(--card)] border border-[var(--line-soft)] p-6 rounded-[var(--r-m)] text-center" role="status">
         <p className="font-semibold mb-1">Thanks, you're on the list.</p>
         <p className="text-sm text-[var(--fg-muted)]">The setup steps will arrive by email. You can unsubscribe in 1 click.</p>
       </div>
@@ -37,7 +37,7 @@ export default function EmailSignup() {
   }
 
   return (
-    <form onSubmit={submit} className="bg-[var(--bg-soft)] p-6 rounded-[var(--r-m)]" noValidate>
+    <form onSubmit={submit} className="bg-[var(--card)] border border-[var(--line-soft)] p-6 rounded-[var(--r-m)]" noValidate>
       <label htmlFor="signup-email" className="block font-semibold mb-1">
         Want the setup steps and the odd tip by email?
       </label>
@@ -53,7 +53,7 @@ export default function EmailSignup() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="flex-1 min-w-0 px-4 py-3 rounded-full bg-[var(--bg)] border border-white/20 text-[var(--fg)] placeholder:text-[var(--fg-faint)] focus:outline-none focus:border-[var(--brand)]"
+          className="flex-1 min-w-0 px-4 py-3 rounded-full bg-[var(--bg-soft)] border border-white/20 text-[var(--fg)] placeholder:text-[var(--fg-faint)] focus:outline-none focus:border-[var(--brand)]"
         />
         {/* Hidden from people; bots fill it in. */}
         <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />

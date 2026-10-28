@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Header() {
   return (
-    <header className="bg-[var(--bg)] border-b border-[var(--line)] sticky top-0 z-50">
+    <header className="bg-[var(--card)] border-b border-[var(--line-soft)] sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">

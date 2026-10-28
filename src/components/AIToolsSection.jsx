@@ -56,7 +56,7 @@ export default function AIToolsSection() {
         </p>
       </div>
 
-      <div className="bg-[var(--bg-soft)] rounded-[var(--r-l)] p-6">
+      <div className="bg-[var(--card)] border border-[var(--line-soft)] rounded-[var(--r-l)] p-6">
         <div className="flex flex-wrap gap-2 mb-5" role="tablist" aria-label="Where to use Easier Transcribe">
           {OPTIONS.map((o) => (
             <button
@@ -68,7 +68,7 @@ export default function AIToolsSection() {
                 setCopied(false);
               }}
               className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                active === o.id ? 'bg-[var(--brand-fill)] text-[var(--on-brand)]' : 'bg-[var(--bg)] text-[var(--fg-muted)] hover:text-[var(--fg)]'
+                active === o.id ? 'bg-[var(--brand-fill)] text-[var(--on-brand)]' : 'bg-[var(--bg-soft)] text-[var(--fg-muted)] hover:text-[var(--fg)]'
               }`}
             >
               {o.label}
@@ -78,14 +78,14 @@ export default function AIToolsSection() {
 
         <p className="text-sm mb-3">{option.intro}</p>
         <div className="relative">
-          <pre className="bg-[var(--bg)] rounded-[var(--r-m)] p-4 pr-24 text-sm font-mono text-[var(--brand)] overflow-x-auto">{option.code}</pre>
+          <pre className="bg-[var(--bg-soft)] rounded-[var(--r-m)] p-4 pr-24 text-sm font-mono text-[var(--brand)] overflow-x-auto">{option.code}</pre>
           <button
             onClick={async () => {
               await copyToClipboard(option.code);
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);
             }}
-            className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold bg-[var(--bg-soft)] hover:bg-[var(--bg-softest)]"
+            className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold bg-[var(--card)] border border-[var(--line-soft)] hover:bg-[var(--bg-softest)]"
           >
             {copied ? 'Copied' : 'Copy'}
           </button>

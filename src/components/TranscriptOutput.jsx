@@ -33,6 +33,7 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
   const [copied, setCopied] = useState(false);
   const [pasteHint, setPasteHint] = useState('');
   const [maxChars, setMaxChars] = useState(84);
+  const longTranscript = buildAskPrompt(edits.text ?? formatTranscript(transcript, 'text', { maxChars }), transcript.title).needsPaste;
   const textareaRef = useRef(null);
   const isSubtitles = format === 'srt' || format === 'vtt';
 
@@ -74,7 +75,7 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
   const words = value.split(/\s+/).filter(Boolean).length;
 
   return (
-    <div className="bg-[var(--bg-soft)] rounded-[var(--r-l)] p-6 space-y-4">
+    <div className="bg-[var(--card)] border border-[var(--line-soft)] rounded-[var(--r-l)] p-6 space-y-4">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs text-[var(--fg-faint)]">{isLive ? 'Transcribing… text appears as it is ready' : label}</p>
@@ -95,7 +96,7 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
               aria-selected={format === tab.id}
               onClick={() => setFormat(tab.id)}
               className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                format === tab.id ? 'bg-[var(--brand-fill)] text-[var(--on-brand)]' : 'bg-[var(--bg)] text-[var(--fg-muted)] hover:text-[var(--fg)]'
+                format === tab.id ? 'bg-[var(--brand-fill)] text-[var(--on-brand)]' : 'bg-[var(--bg-soft)] text-[var(--fg-muted)] hover:text-[var(--fg)]'
               }`}
             >
               {tab.label}
@@ -134,28 +135,33 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
         readOnly={isLive}
         spellCheck={format === 'text'}
         aria-label="Transcript"
-        className={`w-full h-96 bg-[var(--bg)] rounded-[var(--r-m)] p-4 text-sm leading-relaxed text-[var(--fg)] border border-transparent focus:border-[var(--brand)] focus:outline-none ${
+        className={`w-full h-96 bg-[var(--bg-soft)] rounded-[var(--r-m)] p-4 text-sm leading-relaxed text-[var(--fg)] border border-transparent focus:border-[var(--brand)] focus:outline-none ${
           isSubtitles ? '' : 'font-poppins'
         }`}
       />
 
       {!isLive && value && (
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm text-[var(--fg-muted)]">Ask an AI about this:</span>
-          {Object.entries(AI_APPS).map(([id, app]) => (
-            <button
-              key={id}
-              onClick={() => handleAsk(app)}
-              className="px-6 py-2 rounded-full text-sm font-semibold border border-[var(--line)] hover:bg-[var(--bg-softest)] text-[var(--fg)]"
-            >
-              Start in {app.name}
-            </button>
-          ))}
-          {pasteHint && <p className="w-full text-sm text-[var(--brand)]" role="status">{pasteHint}</p>}
+        <div className="space-y-3 rounded-[var(--r-l)] bg-[var(--brand-soft)] p-5">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--brand)]">Ask an AI about this</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {Object.entries(AI_APPS).map(([id, app]) => (
+              <button
+                key={id}
+                onClick={() => handleAsk(app)}
+                className="min-h-[52px] flex-1 px-8 rounded-full text-base font-semibold bg-[var(--brand-fill)] hover:bg-[var(--brand-hover)] text-[var(--on-brand)]"
+              >
+                Start in {app.name}
+              </button>
+            ))}
+          </div>
+          <p className="text-sm text-[var(--fg-muted)]">
+            {longTranscript
+              ? 'This one is long. We copy the transcript, open the app, and you press paste (Ctrl+V, or hold and paste on a phone) and send.'
+              : 'Opens the app with your transcript and a summary request ready to go.'}
+          </p>
+          {pasteHint && <p className="text-sm font-semibold text-[var(--brand)]" role="status">{pasteHint}</p>}
         </div>
       )}
-
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-[var(--fg-faint)]">
           {edits[format] !== undefined ? 'Edited. Copy or download keeps your changes.' : 'You can edit the text before copying it.'}
@@ -164,7 +170,7 @@ export default function TranscriptOutput({ transcript, isLive = false }) {
           <button
             onClick={handleCopy}
             disabled={isLive || !value}
-            className="px-6 py-2 rounded-full text-sm font-semibold bg-[var(--bg)] hover:bg-[var(--bg-softest)] text-[var(--fg)]"
+            className="px-6 py-2 rounded-full text-sm font-semibold bg-[var(--bg-soft)] hover:bg-[var(--bg-softest)] text-[var(--fg)]"
           >
             {copied ? 'Copied' : 'Copy'}
           </button>

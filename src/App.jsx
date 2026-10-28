@@ -10,6 +10,7 @@ import WorkingNotes from './components/WorkingNotes';
 import ProgressBar from './components/ProgressBar';
 import TranscriptOutput from './components/TranscriptOutput';
 import HelperPanel from './components/HelperPanel';
+import { isLightDevice, getAccurate, setAccurate, startOnProcessor } from './lib/modelChoice';
 import AIToolsSection from './components/AIToolsSection';
 import { extractAudio } from './lib/audio';
 import { getYouTubeCaptions } from './lib/youtube';
@@ -56,7 +57,8 @@ export default function App() {
   const audioSentRef = useRef(false);
   const audioRef = useRef(null);
   const modelReadyRef = useRef(false);
-  const forceWasmRef = useRef(false);
+  const forceWasmRef = useRef(startOnProcessor());
+  const [accurate, setAccurateState] = useState(getAccurate());
   const onGpuRef = useRef(false);
   const lastProgressRef = useRef(0);
   const runningOnRef = useRef('Transcribing');
@@ -324,8 +326,8 @@ export default function App() {
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-12">
         <section className="mb-12 text-center">
-          <p className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-[var(--brand-soft)] text-[var(--brand)] text-xs font-medium">Free, private, no sign-up</p>
-          <h2 className="text-3xl md:text-5xl font-semibold mb-4 text-[var(--fg)] leading-tight">
+          <p className="inline-flex items-center px-4 py-1 mb-4 rounded-full bg-[var(--brand-soft)] text-[var(--brand)] text-xs font-semibold uppercase tracking-[0.22em]">Free, private, no sign-up</p>
+          <h2 className="text-3xl md:text-5xl font-bold mb-4 text-[var(--fg)] leading-tight">
             Turn any video, audio or YouTube link into text
           </h2>
           <p className="text-xl text-[var(--fg-muted)] mb-3">No limits, no ads.</p>
@@ -341,12 +343,18 @@ export default function App() {
           <section className="space-y-4 mb-12">
             <UploadZone onFileSelect={handleFile} disabled={working} />
             <LinkInput onYouTube={handleLink} onMediaLink={handleMediaLink} disabled={working} />
+            {isLightDevice() && !workerRef.current && (
+              <label className="flex items-start gap-3 text-sm text-[var(--fg-muted)] cursor-pointer">
+                <input type="checkbox" className="mt-1" checked={accurate} onChange={(e) => { setAccurate(e.target.checked); setAccurateState(e.target.checked); forceWasmRef.current = !e.target.checked; }} />
+                <span><b className="text-[var(--fg)]">More accurate (500 MB)</b><br />Off: a smaller 80 MB model, quicker on phones and slow links. On: bigger download, on your graphics chip.</span>
+              </label>
+            )}
           </section>
         )}
 
         {working && (
           <section className="space-y-4 mb-8">
-            <div className="bg-[var(--bg-soft)] p-6 rounded-[var(--r-m)]">
+            <div className="bg-[var(--card)] border border-[var(--line-soft)] p-6 rounded-[var(--r-m)]">
               <p className="text-xs text-[var(--fg-faint)]">{job.kind === 'file' ? 'File' : 'Link'}</p>
               <p className="font-semibold text-lg truncate">{job.label}</p>
             </div>
@@ -378,7 +386,7 @@ export default function App() {
               <p className="text-sm text-[var(--fg)]">{error}</p>
             </div>
             <div className="text-center">
-              <button onClick={reset} className="px-6 py-3 rounded-full text-sm font-semibold bg-[var(--bg-soft)] hover:bg-[var(--bg-softest)] text-[var(--fg)]">
+              <button onClick={reset} className="px-6 py-3 rounded-full text-sm font-semibold bg-[var(--card)] border border-[var(--line-soft)] hover:bg-[var(--bg-softest)] text-[var(--fg)]">
                 Try again
               </button>
             </div>

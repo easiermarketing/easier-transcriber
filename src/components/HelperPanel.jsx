@@ -10,7 +10,7 @@ export default function HelperPanel({ reason, title, onRetry, onCancel, checking
   const [copied, setCopied] = useState(false);
 
   return (
-    <div className="bg-[var(--bg-soft)] rounded-[var(--r-l)] p-6 space-y-5">
+    <div className="bg-[var(--card)] border border-[var(--line-soft)] rounded-[var(--r-l)] p-6 space-y-5">
       <div>
         <p className="text-xs text-[var(--fg-faint)]">{title || 'YouTube video'}</p>
         <h3 className="text-lg font-semibold">{reason}</h3>
@@ -28,7 +28,7 @@ export default function HelperPanel({ reason, title, onRetry, onCancel, checking
           <span className="flex-none w-6 h-6 rounded-full bg-[var(--brand-fill)] text-[var(--on-brand)] text-xs font-bold flex items-center justify-center">1</span>
           <div className="flex-1 min-w-0">
             <p className="mb-2">Open a terminal and run:</p>
-            <div className="flex items-center gap-2 bg-[var(--bg)] rounded-lg pl-4 pr-2 py-2">
+            <div className="flex items-center gap-2 bg-[var(--bg-soft)] rounded-lg pl-4 pr-2 py-2">
               <code className="flex-1 font-mono text-[var(--brand)] overflow-x-auto whitespace-nowrap">{HELPER_COMMAND}</code>
               <button
                 onClick={async () => {
@@ -36,7 +36,7 @@ export default function HelperPanel({ reason, title, onRetry, onCancel, checking
                   setCopied(true);
                   setTimeout(() => setCopied(false), 1500);
                 }}
-                className="px-3 py-1 rounded-full text-xs font-semibold bg-[var(--bg-soft)] hover:bg-[var(--bg-softest)]"
+                className="px-3 py-1 rounded-full text-xs font-semibold bg-[var(--card)] border border-[var(--line-soft)] hover:bg-[var(--bg-softest)]"
               >
                 {copied ? 'Copied' : 'Copy'}
               </button>
@@ -59,7 +59,7 @@ export default function HelperPanel({ reason, title, onRetry, onCancel, checking
         >
           {checking ? 'Looking for the helper…' : 'Transcribe with the helper'}
         </button>
-        <button onClick={onCancel} className="px-6 py-3 rounded-full text-sm font-semibold bg-[var(--bg)] hover:bg-[var(--bg-softest)] text-[var(--fg)]">
+        <button onClick={onCancel} className="px-6 py-3 rounded-full text-sm font-semibold bg-[var(--bg-soft)] hover:bg-[var(--bg-softest)] text-[var(--fg)]">
           Start over
         </button>
       </div>
