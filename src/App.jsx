@@ -13,16 +13,8 @@ import AIToolsSection from './components/AIToolsSection';
 import { extractAudio } from './lib/audio';
 import { getYouTubeCaptions } from './lib/youtube';
 import { isHelperRunning, transcribeWithHelper } from './lib/helper';
+import { HELPER_CAN_HELP, chooseFallback } from './lib/fallback';
 import { isValidFile, isVideoFile } from './lib/utils';
-
-// YouTube problems the free helper can usually get around.
-const HELPER_CAN_HELP = {
-  no_captions: 'This video has no captions.',
-  blocked: "YouTube wouldn't share this video's captions with us just now.",
-  rate_limited: 'YouTube is busy and asked us to slow down.',
-  unavailable: "We couldn't reach YouTube just now.",
-  login_required: 'YouTube wants a sign-in before it shares this video.',
-};
 
 // For direct links whose address has no file extension.
 const MIME_EXTENSIONS = {
@@ -222,7 +214,11 @@ export default function App() {
       setPhase('done');
     } catch (e) {
       if (controller.signal.aborted) return;
-      if (HELPER_CAN_HELP[e.code]) {
+      const route = await chooseFallback(e.code, isHelperRunning);
+      if (controller.signal.aborted) return;
+      if (route === 'helper-now') {
+        runHelper(link, e.info?.title || '');
+      } else if (route === 'helper-panel') {
         setHelperReason(HELPER_CAN_HELP[e.code]);
         setHelperTitle(e.info?.title || '');
         setPhase('helper');
@@ -274,10 +270,13 @@ export default function App() {
       return;
     }
 
-    const link = job.link;
+    runHelper(job.link, helperTitle);
+  };
+
+  const runHelper = async (link, title) => {
     const controller = new AbortController();
     abortRef.current = controller;
-    setJob({ kind: 'helper', label: helperTitle || 'YouTube video', link });
+    setJob({ kind: 'helper', label: title || 'YouTube video', link });
     setPhase('working');
     setStatus({ message: 'Asking the helper to fetch the audio', progress: 0, eta: 0 });
     startedRef.current = Date.now();
