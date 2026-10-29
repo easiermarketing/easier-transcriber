@@ -1,6 +1,6 @@
 # Chrome Web Store listing: Easier Transcribe
 
-Draft. Not submitted.
+Ready to paste. Not submitted.
 
 ## Name
 
@@ -8,7 +8,7 @@ Easier Transcribe
 
 ## Short description (132 characters max)
 
-Free transcripts for any video or audio on the page. YouTube captions in 1 second. Whisper on your device. Nothing uploaded.
+Free transcripts for any video or audio on the page. YouTube captions in 2 seconds. Whisper on your device. Nothing uploaded.
 
 ## Category
 
@@ -22,7 +22,7 @@ English
 
 Press the button on any page with a video or audio. See which is which. Pick one. Get the transcript.
 
-It is free. No account. No limits. No paid plan. Nothing is uploaded.
+It is free. No account. No paid plan. Nothing is uploaded.
 
 HOW IT WORKS
 1. Open a page with a video or audio.
@@ -30,7 +30,7 @@ HOW IT WORKS
 3. Pick the one you want from the list. Each has its title and thumbnail.
 4. The transcript opens in its own tab.
 
-YOUTUBE: 1 SECOND
+YOUTUBE: 1 TO 2 SECONDS
 YouTube captions are read from the page you are already on, in your own signed-in browser. No bot check. No server in between.
 
 EVERYTHING ELSE: WHISPER ON YOUR DEVICE
@@ -84,9 +84,32 @@ Paste each line into the matching field in the developer dashboard.
 - Sold to third parties: No.
 - Used for purposes unrelated to the single purpose: No.
 - Used for creditworthiness or lending: No.
-- Privacy policy: https://easier-transcribe.pages.dev/privacy/ (the page is built on branch feat/privacy-page and goes live with the next production deploy, which needs Anthony's typed line).
+- Privacy policy: https://easier-transcribe.pages.dev/privacy/. It is live.
+
+## Pictures, in upload order
+
+Folder: `upload-ready/` next to this file. All 1280x800 unless noted.
+
+1. `1-pick-a-video.png` (screenshot 1)
+2. `2-transcript.png` (screenshot 2)
+3. `3-export-srt.png` (screenshot 3)
+4. `4-working.png` (screenshot 4)
+5. `5-saved-history.png` (screenshot 5)
+- Small promo tile, 440x280: `promo-tile-440x280.png`
+- Marquee promo tile, 1400x560: `marquee-1400x560.png`
+- Store icon 128x128: `icon128.png` (inside the zip too)
+
+## Package
+
+`easier-transcribe-extension-0.1.0.zip` (about 17 MB, manifest at the root).
+
+## What the claims rest on
+
+- "YouTube captions in 1 to 2 seconds": real YouTube video, real build, headless Chrome, text on screen in 1 to 2 seconds (`real-youtube-*.png`).
+- "Nothing is uploaded": no server of ours is called; Whisper runs in the browser.
+- Longest file tested: a 99 second, 560 MB video, first run on a phone-width page with the model download throttled to 12 Mbps. It finished in 106 to 118 seconds, model download included. Nothing longer has been run, so there is no claim of "no limit" and no claim of "ready in seconds" for Whisper jobs. The listing says very long recordings need a lot of memory.
 
 ## Notes for the team
 
-- Screenshots (1280x800) and the 440x280 small promo tile are in this folder. The marquee tile (1400x560) is optional and not made.
+- The pictures use the Easier cloud logomark and a recoloured frame of LPM Liquid Background 1.mp4 as the ink-in-water background (Easier Done confirmed the file).
 - The screenshots use a public demo page, https://demo.easier-transcribe.pages.dev/ (a preview deploy, not production). No localhost shows.

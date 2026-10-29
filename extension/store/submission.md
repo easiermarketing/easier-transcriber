@@ -5,7 +5,7 @@ Nothing has been paid, submitted or opened in the store.
 ## Ready
 - Package: `extension/dist` zipped by `npm run build:extension` (zip it from the folder, manifest at the root).
 - Listing words, category (Productivity), single purpose, permission reasons, data answers: `listing.md`.
-- 5 screenshots 1280x800 and the 440x280 tile: this folder. Marquee 1400x560 is optional and not made.
+- 5 screenshots 1280x800 and the 440x280 tile: this folder. Marquee 1400x560 is made.
 - Privacy policy text: `privacy.md`. The public page is built (branch feat/privacy-page, preview https://privacy-preview.easier-transcribe.pages.dev/privacy/).
 - Real-click evidence: `real-youtube-*.png` (headless Chrome, real build, popup opened as the toolbar does).
 

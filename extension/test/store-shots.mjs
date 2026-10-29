@@ -33,9 +33,9 @@ const origin = process.env.ORIGIN || `http://127.0.0.1:${server.address().port}`
 const browser = await puppeteer.launch({ executablePath: chrome, headless: true, pipe: true, enableExtensions: [dist], args: ['--no-sandbox'] });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const asset = (f) => readFileSync(join(here, '../store/brand', f)).toString('base64');
-const INK = `data:image/jpeg;base64,${asset('ink-in-water.jpg')}`; // still rendered from the Easier Agency site ink.ts (vivid look, reduced-motion settle) via test/render-ink.mjs
+const INK = `data:image/jpeg;base64,${asset('ink-in-water.jpg')}`; // frame at 90s of Media Assets/Video/Video Assets/LPM Liquid Background 1.mp4, recoloured purple (approved by Easier Done)
 const CLOUD = `data:image/png;base64,${asset('easier-cloud.png')}`; // Easier cloud logomark
-const INK_BG = (w, h) => `background:linear-gradient(90deg,rgba(20,10,50,.62) 0%,rgba(20,10,50,.3) 55%,rgba(20,10,50,0) 100%),url(${INK}) center/cover;width:${w}px;height:${h}px`;
+const INK_BG = (w, h) => `background:linear-gradient(90deg,rgba(8,6,24,.82) 0%,rgba(8,6,24,.45) 55%,rgba(8,6,24,.1) 100%),url(${INK}) center/cover;width:${w}px;height:${h}px`;
 const FRAME_CSS = `*{box-sizing:border-box;margin:0}body{${INK_BG(1280, 800)};font-family:Poppins,system-ui,sans-serif;color:#fff;display:flex;align-items:center;gap:56px;padding:0 80px;position:relative}
 .logo{position:absolute;left:80px;top:56px;display:flex;align-items:center;gap:14px;font-size:22px;font-weight:600}.logo img{width:52px;height:52px}
 h1{font-size:48px;line-height:1.1;font-weight:600}p{font-size:22px;color:rgba(255,255,255,.85);margin-top:18px;line-height:1.5}
@@ -103,9 +103,9 @@ try {
   await select('Podcast');
   await sleep(400);
   const historyShot = await results.screenshot();
-  await compose('2-transcript.png', 'Your transcript, ready in seconds.', 'YouTube captions come back at once. Everything else is transcribed on your device.', transcriptShot, true);
+  await compose('2-transcript.png', 'Your transcript, in its own tab.', 'YouTube captions arrive in 1 to 2 seconds. Other files are transcribed on your device.', transcriptShot, true);
   await compose('3-export-srt.png', 'Copy it. Or save it as SRT, VTT or text.', 'Subtitles with times, ready for any video editor.', srtShot, true);
-  await compose('4-working.png', 'Long files? Watch it work.', 'The text fills in as it goes. No upload. No limit.', workingShot, true);
+  await compose('4-working.png', 'Long files? Watch it work.', 'The text fills in as it goes. Nothing is uploaded.', workingShot, true);
   await compose('5-saved-history.png', 'Saved on this computer.', 'Close the tab. Refresh. Your transcripts are still there.', historyShot, true);
 
   // Tiles: small 440x280 and marquee 1400x560.
