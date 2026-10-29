@@ -68,3 +68,6 @@
   .layout { grid-template-columns: 1fr; }
   .side { position: static; max-height: none; }
 }
+
+.tools.ask { margin-top: calc(var(--sp-4) * -1); }
+.ask-label { color: var(--fg-muted); font-size: 0.9em; }

@@ -120,10 +120,10 @@ function renderMain() {
       <span class="spacer"></span>
       <button class="btn" data-act="copy">Copy</button>
       <button class="btn primary" data-act="download">Download</button>
-      <button class="btn" data-act="ask-claude">Start in Claude</button>
-      <button class="btn" data-act="ask-chatgpt">Start in ChatGPT</button>
       <button class="btn" data-act="delete">Delete</button>
-    </div><div id="text" class="transcript"></div></div></div>`;
+    </div><div class="tools ask"><span class="ask-label">Ask an AI about it:</span>
+      <button class="btn" data-act="ask-claude">Start in Claude</button>
+      <button class="btn" data-act="ask-chatgpt">Start in ChatGPT</button></div><div id="text" class="transcript"></div></div></div>`;
   }
   main.querySelector('#head').innerHTML = head;
   main.querySelector('#status').innerHTML = status;

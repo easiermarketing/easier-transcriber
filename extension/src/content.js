@@ -51,7 +51,7 @@ if (!globalThis.__easierLoaded) {
 
   // "download 1 file", "MP4" and the like say nothing; the page's own heading or title does.
   function betterTitle(title, el) {
-    const vague = (t) => /^(download( \d+ files?)?|mp[34]|m4a|wav|ogg|webm|video|audio|listen|play|file|link|\d+ files?)$/i.test(t);
+    const vague = (t) => /^(download( options| \d+ files?)?|mp[34]|m4a|wav|ogg|webm|video|audio|listen|play|file|link|\d+ files?)$/i.test(t);
     if (!vague(title)) return title;
     return [nearestHeading(el), clean(document.title)].find((t) => t && !vague(t)) || title;
   }
