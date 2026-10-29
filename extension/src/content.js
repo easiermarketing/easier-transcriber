@@ -49,6 +49,13 @@ if (!globalThis.__easierLoaded) {
     return clean(heading?.textContent);
   }
 
+  // "download 1 file", "MP4" and the like say nothing; the page's own heading or title does.
+  function betterTitle(title, el) {
+    const vague = (t) => /^(download|mp[34]|m4a|wav|ogg|webm|video|audio|listen|play|file|link|\d+ files?|download \d+ files?)[\s\w.]*$/i.test(t);
+    if (!vague(title)) return title;
+    return [nearestHeading(el), clean(document.title)].find((t) => t && !vague(t)) || title;
+  }
+
   function frameOf(el) {
     // A small still from the video itself, when the site lets us read it.
     try {
@@ -112,7 +119,7 @@ if (!globalThis.__easierLoaded) {
     for (const el of media) {
       let src = el.currentSrc || el.src || el.querySelector('source[src]')?.src || '';
       if (pageId && /^blob:/.test(src)) continue; // YouTube's own player, listed above
-      if (!src) continue;
+      if (!src || /^data:/i.test(src)) continue; // inline blobs of data are not a page's video to list
       src = abs(src);
       const kind = el.tagName === 'AUDIO' ? 'audio' : 'video';
       const single = media.length === 1;
@@ -128,7 +135,7 @@ if (!globalThis.__easierLoaded) {
         id: `src:${src}`,
         kind,
         src,
-        title: title || 'Untitled',
+        title: title ? betterTitle(title, el) : 'Untitled',
         thumb: el.getAttribute('poster') ? abs(el.getAttribute('poster')) : frameOf(el),
         duration: Number.isFinite(el.duration) ? el.duration : 0,
         host: host(src) || location.hostname,
@@ -174,7 +181,7 @@ if (!globalThis.__easierLoaded) {
         id: `src:${src}`,
         kind: AUDIO_EXT.test(src) ? 'audio' : 'video',
         src,
-        title: clean(a.textContent) || clean(a.getAttribute('title')) || fileName(src) || 'Linked file',
+        title: betterTitle(clean(a.textContent) || clean(a.getAttribute('title')) || fileName(src) || 'Linked file', a),
         host: host(src),
         linked: true,
       });

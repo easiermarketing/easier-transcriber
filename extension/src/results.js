@@ -264,19 +264,16 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 (async () => {
   keepStorage();
+  const restart = [];
   for (const r of await listRecords()) {
-    // Left "working" by a closed or refreshed tab: the text so far is kept.
-    if (r.status === 'working' || r.status === 'queued') {
-      r.status = 'interrupted';
-      r.stage = '';
-      r.error = 'This tab was closed or refreshed while it was working. The text so far is kept. Try again to start over.';
-      await saveRecord(r);
-    }
+    // Left "working" by a refreshed or reopened tab: start it again by itself, so a refresh never loses the job.
+    if (r.status === 'working' || r.status === 'queued') restart.push(r);
     records.set(r.id, r);
   }
   const wanted = decodeURIComponent(location.hash.slice(1));
   selectedId = records.has(wanted) ? wanted : [...records.values()].sort((a, b) => b.createdAt - a.createdAt)[0]?.id || null;
   schedule();
+  for (const r of restart) resume(r);
   await takeQueue();
 })();
 
