@@ -33,9 +33,9 @@ const origin = process.env.ORIGIN || `http://127.0.0.1:${server.address().port}`
 const browser = await puppeteer.launch({ executablePath: chrome, headless: true, pipe: true, enableExtensions: [dist], args: ['--no-sandbox'] });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const asset = (f) => readFileSync(join(here, '../store/brand', f)).toString('base64');
-const INK = `data:image/jpeg;base64,${asset('ink-in-water.jpg')}`; // static frame of the brand ink-in-water clip, recoloured purple
+const INK = `data:image/jpeg;base64,${asset('ink-in-water.jpg')}`; // still rendered from the Easier Agency site ink.ts (vivid look, reduced-motion settle) via test/render-ink.mjs
 const CLOUD = `data:image/png;base64,${asset('easier-cloud.png')}`; // Easier cloud logomark
-const INK_BG = (w, h) => `background:linear-gradient(90deg,rgba(8,6,24,.82) 0%,rgba(8,6,24,.45) 55%,rgba(8,6,24,.1) 100%),url(${INK}) center/cover;width:${w}px;height:${h}px`;
+const INK_BG = (w, h) => `background:linear-gradient(90deg,rgba(20,10,50,.62) 0%,rgba(20,10,50,.3) 55%,rgba(20,10,50,0) 100%),url(${INK}) center/cover;width:${w}px;height:${h}px`;
 const FRAME_CSS = `*{box-sizing:border-box;margin:0}body{${INK_BG(1280, 800)};font-family:Poppins,system-ui,sans-serif;color:#fff;display:flex;align-items:center;gap:56px;padding:0 80px;position:relative}
 .logo{position:absolute;left:80px;top:56px;display:flex;align-items:center;gap:14px;font-size:22px;font-weight:600}.logo img{width:52px;height:52px}
 h1{font-size:48px;line-height:1.1;font-weight:600}p{font-size:22px;color:rgba(255,255,255,.85);margin-top:18px;line-height:1.5}
