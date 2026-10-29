@@ -32,10 +32,15 @@ const origin = process.env.ORIGIN || `http://127.0.0.1:${server.address().port}`
 
 const browser = await puppeteer.launch({ executablePath: chrome, headless: true, pipe: true, enableExtensions: [dist], args: ['--no-sandbox'] });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const FRAME_CSS = `*{box-sizing:border-box;margin:0}body{width:1280px;height:800px;font-family:Poppins,system-ui,sans-serif;color:#121417;
-background:radial-gradient(55% 70% at 18% 0%,rgba(110,70,255,.2),transparent 62%),radial-gradient(60% 75% at 90% 100%,rgba(250,45,127,.14),transparent 66%),#f7f5ff;display:flex;align-items:center;gap:56px;padding:0 80px}
-h1{font-size:48px;line-height:1.1;font-weight:600}p{font-size:22px;color:#5d616b;margin-top:18px;line-height:1.5}
-.card{border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(110,70,255,.25);border:1px solid rgba(18,20,23,.1);background:#fff}img{display:block}`;
+const asset = (f) => readFileSync(join(here, '../store/brand', f)).toString('base64');
+const INK = `data:image/jpeg;base64,${asset('ink-in-water.jpg')}`; // static frame of the brand ink-in-water clip, recoloured purple
+const CLOUD = `data:image/png;base64,${asset('easier-cloud.png')}`; // Easier cloud logomark
+const INK_BG = (w, h) => `background:linear-gradient(90deg,rgba(8,6,24,.82) 0%,rgba(8,6,24,.45) 55%,rgba(8,6,24,.1) 100%),url(${INK}) center/cover;width:${w}px;height:${h}px`;
+const FRAME_CSS = `*{box-sizing:border-box;margin:0}body{${INK_BG(1280, 800)};font-family:Poppins,system-ui,sans-serif;color:#fff;display:flex;align-items:center;gap:56px;padding:0 80px;position:relative}
+.logo{position:absolute;left:80px;top:56px;display:flex;align-items:center;gap:14px;font-size:22px;font-weight:600}.logo img{width:52px;height:52px}
+h1{font-size:48px;line-height:1.1;font-weight:600}p{font-size:22px;color:rgba(255,255,255,.85);margin-top:18px;line-height:1.5}
+.card{border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.25);background:#fff}.card img{display:block;width:660px;height:auto}
+body.wide{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:28px;padding:130px 80px 0}.wide h1{font-size:42px}.wide p{font-size:20px;margin-top:10px}.wide .card img{width:1000px;height:490px;object-fit:cover;object-position:top left}`;
 
 try {
   const swTarget = await browser.waitForTarget((t) => t.type() === 'service_worker' && t.url().endsWith('background.js'), { timeout: 20000 });
@@ -46,10 +51,10 @@ try {
   await page.waitForFunction(() => document.querySelector('video').readyState >= 2 && document.querySelector('audio').readyState >= 2);
   const tabId = await sw.evaluate(async (o) => (await chrome.tabs.query({ url: `${o}/*` }))[0].id, origin);
 
-  const compose = async (name, headline, sub, imgBuf) => {
+  const compose = async (name, headline, sub, imgBuf, wide = false) => {
     const p = await browser.newPage();
     await p.setViewport({ width: 1280, height: 800 });
-    await p.setContent(`<style>${FRAME_CSS}</style><div style="flex:1"><h1>${headline}</h1><p>${sub}</p></div><div class="card"><img src="data:image/png;base64,${imgBuf.toString('base64')}"></div>`);
+    await p.setContent(`<style>${FRAME_CSS}</style><body class="${wide ? 'wide' : ''}"><div class="logo"><img src="${CLOUD}">Easier Transcribe</div><div style="flex:1"><h1>${headline}</h1><p>${sub}</p></div><div class="card"><img src="data:image/png;base64,${imgBuf.toString('base64')}"></div></body>`);
     await p.screenshot({ path: join(out, name) });
     await p.close();
   };
@@ -82,7 +87,7 @@ try {
   await finished('Garden tour');
   await pick('Podcast');
   await results.waitForFunction(() => [...globalThis.__easier.records.values()].some((r) => r.title.includes('Podcast') && r.status === 'working' && r.progress > 0.25 && (r.segments || []).length > 2), { timeout: 600000, polling: 300 });
-  await results.screenshot({ path: join(out, '4-working.png') });
+  const workingShot = await results.screenshot();
   await finished('Podcast');
   await pick('Club meeting');
   await finished('Club meeting');
@@ -90,23 +95,31 @@ try {
   const select = (t) => results.evaluate((x) => { [...document.querySelectorAll('.row')].find((r) => r.textContent.includes(x)).click(); }, t);
   await select('Garden tour');
   await sleep(500);
-  await results.screenshot({ path: join(out, '2-transcript.png') });
+  const transcriptShot = await results.screenshot();
   await results.click('[data-format="srt"]');
   await sleep(400);
-  await results.screenshot({ path: join(out, '3-export-srt.png') });
+  const srtShot = await results.screenshot();
   await results.click('[data-format="text"]');
   await select('Podcast');
   await sleep(400);
-  await results.screenshot({ path: join(out, '5-saved-history.png') });
+  const historyShot = await results.screenshot();
+  await compose('2-transcript.png', 'Your transcript, ready in seconds.', 'YouTube captions come back at once. Everything else is transcribed on your device.', transcriptShot, true);
+  await compose('3-export-srt.png', 'Copy it. Or save it as SRT, VTT or text.', 'Subtitles with times, ready for any video editor.', srtShot, true);
+  await compose('4-working.png', 'Long files? Watch it work.', 'The text fills in as it goes. No upload. No limit.', workingShot, true);
+  await compose('5-saved-history.png', 'Saved on this computer.', 'Close the tab. Refresh. Your transcripts are still there.', historyShot, true);
 
-  // Tile 440x280.
-  const tile = await browser.newPage();
-  await tile.setViewport({ width: 440, height: 280 });
-  const icon = readFileSync(join(here, '../icons/icon128.png')).toString('base64');
-  await tile.setContent(`<style>*{margin:0;box-sizing:border-box}body{width:440px;height:280px;font-family:Poppins,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,#a68eff 0%,#6e46ff 45%,#c208ff 100%);display:flex;flex-direction:column;justify-content:center;padding:0 36px}
-img{width:64px;height:64px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.25);margin-bottom:20px}h1{font-size:34px;line-height:1.1;font-weight:600}p{font-size:18px;margin-top:10px;opacity:.95}</style>
-<img src="data:image/png;base64,${icon}"><h1>Easier Transcribe</h1><p>Free transcripts. On your device.</p>`);
-  await tile.screenshot({ path: join(out, 'promo-tile-440x280.png') });
+  // Tiles: small 440x280 and marquee 1400x560.
+  const makeTile = async (name, w, h, big) => {
+    const t = await browser.newPage();
+    await t.setViewport({ width: w, height: h });
+    await t.setContent(`<style>*{margin:0;box-sizing:border-box}body{${INK_BG(w, h)};font-family:Poppins,system-ui,sans-serif;color:#fff;display:flex;flex-direction:column;justify-content:center;padding:0 ${big ? 110 : 36}px}
+img{width:${big ? 120 : 64}px;height:${big ? 120 : 64}px;margin-bottom:${big ? 28 : 16}px}h1{font-size:${big ? 76 : 34}px;line-height:1.1;font-weight:600}p{font-size:${big ? 32 : 18}px;margin-top:${big ? 16 : 10}px;opacity:.92}</style>
+<img src="${CLOUD}"><h1>Easier Transcribe</h1><p>Free transcripts. On your device.</p>`);
+    await t.screenshot({ path: join(out, name) });
+    await t.close();
+  };
+  await makeTile('promo-tile-440x280.png', 440, 280, false);
+  await makeTile('marquee-1400x560.png', 1400, 560, true);
   console.log('done', out);
 } finally {
   await browser.close();

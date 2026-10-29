@@ -17,16 +17,9 @@ button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--focus-off); }
 
 .mark {
-  width: 28px; height: 28px; flex: none;
-  border-radius: var(--r-s);
-  background: var(--gradient-brand);
-  position: relative;
+  width: 32px; height: 32px; flex: none;
+  background: url("/icons/icon48.png") center / contain no-repeat; /* Easier cloud logomark */
 }
-.mark::before, .mark::after {
-  content: ""; position: absolute; left: 7px; height: 3px; border-radius: 2px; background: var(--on-brand);
-}
-.mark::before { top: 9px; width: 14px; }
-.mark::after { top: 16px; width: 9px; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-3);

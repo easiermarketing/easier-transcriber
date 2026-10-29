@@ -80,7 +80,6 @@ mkdirSync(join(outDir, 'ffmpeg'), { recursive: true });
 const ffmpeg = join(repo, 'node_modules/@ffmpeg/core/dist/esm');
 for (const f of ['ffmpeg-core.js', 'ffmpeg-core.wasm']) copyFileSync(join(ffmpeg, f), join(outDir, 'ffmpeg', f));
 
-await import('./scripts/make-icons.mjs');
 cpSync(join(here, 'icons'), join(outDir, 'icons'), { recursive: true });
 
 console.log(`Extension built in ${outDir}\nLoad it: chrome://extensions, turn on Developer mode, Load unpacked, pick that folder.`);
