@@ -89,4 +89,4 @@ Paste each line into the matching field in the developer dashboard.
 ## Notes for the team
 
 - Screenshots (1280x800) and the 440x280 small promo tile are in this folder. The marquee tile (1400x560) is optional and not made.
-- The page address shown in the screenshots is a local demo page.
+- The screenshots use a public demo page, https://demo.easier-transcribe.pages.dev/ (a preview deploy, not production). No localhost shows.

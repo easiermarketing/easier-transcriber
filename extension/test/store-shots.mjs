@@ -28,7 +28,7 @@ const server = createServer((req, res) => {
   createReadStream(f).pipe(res);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
-const origin = `http://127.0.0.1:${server.address().port}`;
+const origin = process.env.ORIGIN || `http://127.0.0.1:${server.address().port}`; // ORIGIN: a public demo page, so no localhost shows in the pictures
 
 const browser = await puppeteer.launch({ executablePath: chrome, headless: true, pipe: true, enableExtensions: [dist], args: ['--no-sandbox'] });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
