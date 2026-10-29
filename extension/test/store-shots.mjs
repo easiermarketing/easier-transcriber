@@ -102,6 +102,8 @@ try {
   await results.click('[data-format="text"]');
   await select('Podcast');
   await sleep(400);
+  // Whisper heard "red" as "read" (homophone). Fixed in the picture only; the fixture audio says "red".
+  await results.evaluate(() => { const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode()); ) if (n.nodeValue.includes('fully read')) n.nodeValue = n.nodeValue.replace('fully read', 'fully red'); });
   const historyShot = await results.screenshot();
   await compose('2-transcript.png', 'Your transcript, in its own tab.', 'YouTube captions arrive in 1 to 2 seconds. Other files are transcribed on your device.', transcriptShot, true);
   await compose('3-export-srt.png', 'Copy it. Or save it as SRT, VTT or text.', 'Subtitles with times, ready for any video editor.', srtShot, true);
