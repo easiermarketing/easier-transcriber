@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Easier Transcribe",
   "version": "0.1.0",
-  "description": "Free transcripts for any video or audio on the page. YouTube captions in a second, Whisper on your own device. Nothing is uploaded.",
+  "description": "Free transcripts for any video or audio on the page. YouTube captions in 2 seconds. Whisper on your device. Nothing uploaded.",
   "minimum_chrome_version": "116",
   "icons": {
     "16": "icons/icon16.png",
