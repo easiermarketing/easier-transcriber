@@ -28,7 +28,7 @@ export default function HelperPanel({ reason, title, onRetry, onCancel, checking
           <span className="flex-none w-6 h-6 rounded-full bg-[var(--brand-fill)] text-[var(--on-brand)] text-xs font-bold flex items-center justify-center">1</span>
           <div className="flex-1 min-w-0">
             <p className="mb-2">Open a terminal and run:</p>
-            <div className="flex items-center gap-2 bg-[var(--bg-soft)] rounded-lg pl-4 pr-2 py-2">
+            <div className="flex items-center gap-2 bg-[var(--bg-soft)] rounded-[var(--r-s)] pl-4 pr-2 py-2">
               <code className="flex-1 font-mono text-[var(--brand)] overflow-x-auto whitespace-nowrap">{HELPER_COMMAND}</code>
               <button
                 onClick={async () => {
