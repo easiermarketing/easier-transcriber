@@ -8,7 +8,6 @@ export default {
     extend: {
       colors: {
         cyan: '#6EF6FF',
-        purple: '#6E46FF',
         green: '#46FF88',
         blue: '#0694FF',
         darkBg: '#121417',
@@ -21,6 +20,7 @@ export default {
       },
       fontFamily: {
         poppins: ['Poppins', 'sans-serif'],
+        mono: ['"Azeret Mono"', 'ui-monospace', '"SF Mono"', 'Menlo', 'monospace'],
         caveat: ['Caveat', 'cursive'],
       },
       fontSize: {

@@ -28,6 +28,8 @@
   /* ---- Touch + focus ---- */
   --on-media: #ffffff; --media-scrim: rgba(0, 0, 0, 0.6); --knob-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   --touch: 44px;
+  /* Backdrop (ink in water) tints. Same in every mode: the look is chosen on the Backdrop, not by the mode. */
+  --backdrop-tint-dark: rgba(14, 6, 30, 0.55); --backdrop-tint-soft: rgba(255, 255, 255, 0.87); --on-backdrop-soft: #121417;
   --focus-w: 3px;
   --focus-off: 2px;
 
