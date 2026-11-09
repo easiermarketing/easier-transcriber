@@ -4,6 +4,7 @@ import Footer from './components/Footer';
 import BrowserWarning from './components/BrowserWarning';
 import UploadZone from './components/UploadZone';
 import EmailSignup from './components/EmailSignup';
+import Explainer from './components/Explainer';
 import LinkInput from './components/LinkInput';
 import ModelStatus from './components/ModelStatus';
 import WorkingNotes from './components/WorkingNotes';
@@ -333,7 +334,7 @@ export default function App() {
           <h2 className="text-3xl md:text-5xl font-bold mb-4 text-[var(--fg)] leading-tight">
             Turn any video, audio or YouTube link into text
           </h2>
-          <p className="text-xl text-[var(--fg-muted)] mb-3">No limits, no ads.</p>
+          <p className="text-xl text-[var(--fg-muted)] mb-3">No ads. Nothing to sign up for.</p>
           <p className="text-[var(--fg-muted)] max-w-2xl mx-auto mb-5">
             Whisper runs right here in your browser, so your files never leave your device.
           </p>
@@ -410,6 +411,8 @@ export default function App() {
             </div>
           </section>
         )}
+
+        {phase === 'idle' && <Explainer />}
 
         <AIToolsSection />
       </main>
