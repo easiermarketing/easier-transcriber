@@ -5,6 +5,7 @@ import BrowserWarning from './components/BrowserWarning';
 import UploadZone from './components/UploadZone';
 import EmailSignup from './components/EmailSignup';
 import Explainer from './components/Explainer';
+import ExtensionCTA from './components/ExtensionCTA';
 import LinkInput from './components/LinkInput';
 import ModelStatus from './components/ModelStatus';
 import WorkingNotes from './components/WorkingNotes';
@@ -206,7 +207,7 @@ export default function App() {
       audioSentRef.current = true;
       startedRef.current = Date.now();
       lastProgressRef.current = Date.now();
-      setStatus({ message: modelReadyRef.current ? runningOnRef.current : 'Getting Whisper ready', progress: 0, eta: 0 });
+      setStatus({ message: modelReadyRef.current ? runningOnRef.current : 'Getting ready', progress: 0, eta: 0 });
       getWorker().postMessage({ type: 'transcribe', audio, forceWasm: forceWasmRef.current });
     } catch (e) {
       fail(e.message);
@@ -334,11 +335,10 @@ export default function App() {
           <h1 className="text-3xl md:text-5xl font-bold mb-4 text-[var(--fg)] leading-tight">
             Turn any video, audio or YouTube link into text
           </h1>
-          <p className="text-xl text-[var(--fg-muted)] mb-3">No ads. Nothing to sign up for.</p>
-          <p className="text-[var(--fg-muted)] max-w-2xl mx-auto mb-5">
-            Whisper runs right here in your browser, so your files never leave your device.
-          </p>
+          <p className="text-xl text-[var(--fg-muted)] mb-2">Free. No sign-up. Your files stay on your device.</p>
         </section>
+
+        {phase === 'idle' && <ExtensionCTA />}
 
         <BrowserWarning />
         <div ref={resultRef} />

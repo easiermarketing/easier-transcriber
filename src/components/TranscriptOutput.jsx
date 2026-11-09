@@ -13,8 +13,8 @@ const TABS = [
 const SOURCE_LABELS = {
   'youtube-captions': "From the video's own captions",
   'youtube-auto-captions': "From YouTube's automatic captions",
-  whisper: 'Transcribed by Whisper in your browser',
-  helper: 'Transcribed by Whisper on your computer',
+  whisper: 'Transcribed in your browser',
+  helper: 'Transcribed on your computer',
 };
 
 function fileName(transcript, format) {

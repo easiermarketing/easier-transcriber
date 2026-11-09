@@ -6,7 +6,7 @@
 <h2>The website: transcribe.easiernow.co</h2>
 <h3>The short version</h3>
 <ul>
-<li>A video or audio file you pick is never uploaded. Whisper runs in your browser on your own device.</li>
+<li>A video or audio file you pick is never uploaded. Speech recognition runs in your browser on your own device.</li>
 <li>Your transcript stays in the page. We do not receive or save it.</li>
 <li>No account, no ads, no cookies of our own, and no analytics code on the page.</li>
 <li>Two things do reach a server of ours: a YouTube link you paste, and an email address you choose to type into the optional list box. Both are described below.</li>
@@ -17,7 +17,7 @@
 <p>The box after a result is optional. If you type an address and press the button, the page sends that address, and nothing else, to <code>/api/subscribe</code>. It is added to a list held by our email provider, Resend, so we can send you the setup steps and the odd tip. Your transcript, the file name and the video link are never sent. Every email has an unsubscribe link. To be removed, use it or write to us through the contact form.</p>
 <h3>Other places the page connects</h3>
 <ul>
-<li>huggingface.co: the first time you transcribe a file, your browser downloads the Whisper model (about 80 MB, or about 500 MB with "More accurate"). Hugging Face sees a normal file download. No audio or text is sent.</li>
+<li>huggingface.co: the first time you transcribe a file, your browser downloads the speech model (about 80 MB, or about 500 MB with "More accurate"). Hugging Face sees a normal file download. No audio or text is sent.</li>
 <li>Google Fonts (fonts.googleapis.com and fonts.gstatic.com): the page loads its typeface from Google, so Google sees your address like any site that does.</li>
 <li>Cloudflare: hosts the site and its two functions.</li>
 </ul>
@@ -29,7 +29,7 @@
 <li>We run no servers for this extension. We receive nothing from it.</li>
 <li>No account, no analytics, no ads, no tracking.</li>
 <li>Your transcripts are saved in your own browser. Only you can see them.</li>
-<li>Whisper runs on your device. Your audio is not uploaded.</li>
+<li>Speech recognition runs on your device. Your audio is not uploaded.</li>
 </ul>
 <h3>What the extension looks at</h3>
 <p>It looks at a page only when you click its button.</p>
@@ -40,7 +40,7 @@
 <li>Your transcripts: the title, the address of the video, a thumbnail address or small still, the text with times, the date, and the method used. Stored in the browser's own storage for this extension (IndexedDB).</li>
 <li>Your choice of the "More accurate" switch. Stored in the extension's local storage.</li>
 <li>A short-lived note that passes your pick from the popup to the results tab. It is removed as soon as the tab takes it.</li>
-<li>The Whisper model files, kept in the browser's cache so they download once.</li>
+<li>The speech model files, kept in the browser's cache so they download once.</li>
 </ul>
 <p>You can delete one transcript or all of them in the results tab. Removing the extension removes everything it saved.</p>
 <h3>Where the extension connects</h3>
@@ -49,10 +49,10 @@
 <li>youtube.com. When you pick a YouTube video, it asks YouTube for that video's captions. This runs from the page you are on, using your own signed-in session, or from the extension for players embedded on other sites. YouTube sees an ordinary request for that video's captions. Their privacy policy applies to that.</li>
 <li>i.ytimg.com. YouTube thumbnails shown in the list.</li>
 <li>The site the video or audio is on. When you pick a file, the extension downloads it from where it already lives, with your session on that site. Poster images are loaded from the same site.</li>
-<li>huggingface.co. The first time you use Whisper, it downloads the model files (about 80 MB, or about 500 MB with "More accurate"). Hugging Face sees a normal file download. No audio or text is sent. Their privacy policy applies.</li>
-<li>googlevideo.com. Only for a YouTube video that has no captions, and only if you allow it when Chrome asks. The extension downloads that video's audio so Whisper can transcribe it on your device.</li>
+<li>huggingface.co. The first time you transcribe a file, it downloads the model files (about 80 MB, or about 500 MB with "More accurate"). Hugging Face sees a normal file download. No audio or text is sent. Their privacy policy applies.</li>
+<li>googlevideo.com. Only for a YouTube video that has no captions, and only if you allow it when Chrome asks. The extension downloads that video's audio so it can be transcribed on your device.</li>
 </ol>
-<p>Nothing else. The code that runs Whisper, ONNX Runtime and ffmpeg ship inside the extension. It loads no code from the internet.</p>
+<p>Nothing else. The code that runs the speech model, ONNX Runtime and ffmpeg ship inside the extension. It loads no code from the internet.</p>
 <h3>What we do not do</h3>
 <ul>
 <li>We do not collect, store, sell or share your data. We never receive it.</li>

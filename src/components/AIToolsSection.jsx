@@ -91,7 +91,7 @@ export default function AIToolsSection() {
           </button>
         </div>
         <p className="text-xs text-[var(--fg-faint)] mt-4">
-          Needs Node.js 20 or later. The first Whisper run downloads a 490 MB model once. YouTube videos with captions
+          Needs Node.js 20 or later. The first run downloads a 490 MB model once. YouTube videos with captions
           need no model at all.
         </p>
       </div>

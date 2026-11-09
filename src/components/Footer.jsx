@@ -38,10 +38,6 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-[var(--line)] flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[var(--fg-faint)]">
             Powered by{' '}
-            <a href="https://github.com/openai/whisper" target="_blank" rel="noopener noreferrer" className="text-[var(--brand)] hover:underline">
-              Whisper
-            </a>
-            ,{' '}
             <a href="https://huggingface.co/docs/transformers.js" target="_blank" rel="noopener noreferrer" className="text-[var(--brand)] hover:underline">
               Transformers.js
             </a>{' '}

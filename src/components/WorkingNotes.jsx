@@ -31,7 +31,7 @@ export default function WorkingNotes({ modelMB, fileSize, modelReady }) {
       )}
       {!modelReady && (big || slow) && (
         <p>
-          The first run downloads Whisper{modelMB ? `, about ${modelMB} MB` : ''}.
+          The first run downloads the speech model{modelMB ? `, about ${modelMB} MB` : ''}.
           {slow ? ' You look to be on a slow or mobile connection, so Wi-Fi is better if you can.' : ''} Next time it
           loads from your browser in seconds.
         </p>

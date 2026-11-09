@@ -12,7 +12,7 @@ export default function ModelStatus({ modelMB, modelProgress, modelReady, backen
   }, []);
 
   if (modelReady) {
-    return <p className="text-xs text-[var(--fg-faint)]">Whisper is ready, running on {backend}.</p>;
+    return <p className="text-xs text-[var(--fg-faint)]">Ready, running on {backend}.</p>;
   }
 
   const percent = Math.round((modelProgress || 0) * 100);
@@ -23,9 +23,9 @@ export default function ModelStatus({ modelMB, modelProgress, modelReady, backen
   const downloadElapsed = downloadStarted.current ? (now - downloadStarted.current) / 1000 : 0;
   const left = downloading && percent >= 3 ? (downloadElapsed / percent) * (100 - percent) : 0;
 
-  const title = preparing ? 'Setting Whisper up on your device' : downloading ? 'Downloading the Whisper model' : 'Getting Whisper ready';
+  const title = preparing ? 'Setting up on your device' : downloading ? 'Downloading the speech model' : 'Getting ready';
   const detail = preparing
-    ? 'The download is done. Whisper now sets itself up, which can take a minute or two the first time.'
+    ? 'The download is done. It now sets itself up, which can take a minute or two the first time.'
     : `First time only${modelMB ? `, about ${modelMB} MB` : ''}. After that it loads from your browser's cache.`;
 
   return (
