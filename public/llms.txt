@@ -1,0 +1,6 @@
+# Easier Transcribe
+
+> A free tool that turns a video, audio file or YouTube link into text. It runs in your browser with Whisper, so nothing is uploaded. No sign-up, no ads. English only. Made by Easier Now (hello@easiernow.co).
+
+- [Home](https://transcribe.easiernow.co/): the tool, a how-it-works guide and FAQ
+- [Privacy](https://transcribe.easiernow.co/privacy/): what is and is not collected

@@ -331,9 +331,9 @@ export default function App() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-12">
         <section className="mb-12 text-center">
           <p className="inline-flex items-center px-4 py-1 mb-4 rounded-full bg-[var(--brand-soft)] text-[var(--brand)] text-xs font-semibold uppercase tracking-[0.22em]">Free, private, no sign-up</p>
-          <h2 className="text-3xl md:text-5xl font-bold mb-4 text-[var(--fg)] leading-tight">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 text-[var(--fg)] leading-tight">
             Turn any video, audio or YouTube link into text
-          </h2>
+          </h1>
           <p className="text-xl text-[var(--fg-muted)] mb-3">No ads. Nothing to sign up for.</p>
           <p className="text-[var(--fg-muted)] max-w-2xl mx-auto mb-5">
             Whisper runs right here in your browser, so your files never leave your device.
