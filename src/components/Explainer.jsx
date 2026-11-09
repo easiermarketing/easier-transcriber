@@ -9,7 +9,7 @@ const steps = [
 
 const faqs = [
   ['Is it really free?', 'Yes. There is no plan to pay for and no account to make.'],
-  ['Is my recording uploaded?', 'No. Whisper runs in your browser on your own computer. We have no server that receives your file or your text.'],
+  ['Is my recording uploaded?', 'No. A file you pick is never uploaded: Whisper runs in your browser on your own computer, and we do not receive your file or your text. Two things do reach us. If you paste a YouTube link, our page function receives the video ID and asks YouTube for the captions. We store and log nothing, though Cloudflare, who host the site, may keep the caption text in its cache for up to 30 minutes. If you choose to join the email list, we receive the address you type. The privacy page has the detail.'],
   ['How long does it take?', 'The first run includes a one-off model download. In our test, a 99 second video on a slow connection took 106 to 118 seconds including that download. Longer files take longer.'],
   ['How long a file can I use?', 'We have tested one file, 99 seconds long. Very long recordings need a lot of memory on your computer, so a very long file may not finish. We have not set a limit.'],
   ['What languages does it handle?', 'The Whisper models we use are English only. YouTube captions come in the language the video has.'],

@@ -25,6 +25,9 @@ export default function Footer() {
               <a href="https://easiernow.co" target="_blank" rel="noopener noreferrer" className="text-[var(--fg-muted)] hover:text-[var(--brand)]">
                 Easier Now
               </a>
+              <a href="/privacy/" className="text-[var(--fg-muted)] hover:text-[var(--brand)]">
+                Privacy
+              </a>
               <a href="https://easiernow.co/contact" target="_blank" rel="noopener noreferrer" className="text-[var(--fg-muted)] hover:text-[var(--brand)]">
                 Contact us
               </a>
