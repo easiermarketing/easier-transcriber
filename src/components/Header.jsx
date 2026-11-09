@@ -6,7 +6,7 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <img src="/easier-cloud.png" alt="" width="40" height="40" className="w-9 h-9 sm:w-10 sm:h-10 shrink-0" />
+            <img src="/easier-mark.png" alt="" width="40" height="40" className="w-9 h-9 sm:w-10 sm:h-10 shrink-0" />
             <div>
               <div className="text-lg sm:text-xl font-bold whitespace-nowrap">Easier Transcribe</div>
               <p className="text-xs text-[var(--fg-muted)]">Free, Private, Instant</p>
