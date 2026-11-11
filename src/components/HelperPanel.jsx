@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HELPER_COMMAND } from '../lib/helper';
+import { HELPER_COMMAND, HELPER_PUBLISHED } from '../lib/helper';
 import { copyToClipboard } from '../lib/utils';
 
 /**
@@ -8,6 +8,23 @@ import { copyToClipboard } from '../lib/utils';
  */
 export default function HelperPanel({ reason, title, onRetry, onCancel, checking }) {
   const [copied, setCopied] = useState(false);
+
+  if (!HELPER_PUBLISHED) {
+    return (
+      <div className="bg-[var(--card)] border border-[var(--line-soft)] rounded-[var(--r-l)] p-6 space-y-5">
+        <div>
+          <p className="text-xs text-[var(--fg-faint)]">{title || 'YouTube video'}</p>
+          <h3 className="text-lg font-semibold">{reason}</h3>
+          <p className="text-sm text-[var(--fg-muted)] mt-2">
+            Download the video, then drop the file in above and it will be transcribed in your browser. Nothing is uploaded.
+          </p>
+        </div>
+        <button onClick={onCancel} className="px-6 py-3 rounded-full text-sm font-semibold bg-[var(--brand-fill)] hover:bg-[var(--brand-hover)] text-[var(--on-brand)]">
+          Start over
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[var(--card)] border border-[var(--line-soft)] rounded-[var(--r-l)] p-6 space-y-5">

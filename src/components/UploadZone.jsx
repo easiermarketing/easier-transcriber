@@ -54,7 +54,7 @@ export default function UploadZone({ onFileSelect, disabled }) {
     }
     if (file.size > 2 * 1024 * 1024 * 1024) {
       const confirmed = window.confirm(
-        `This file is ${formatFileSize(file.size)}. Browsers struggle with files over 2 GB, so it may fail. For long recordings the free helper (npx easier-transcribe) is more reliable. Try anyway?`
+        `This file is ${formatFileSize(file.size)}. Browsers struggle with files over 2 GB, so it may fail. Try anyway?`
       );
       if (!confirmed) return;
     }

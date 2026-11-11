@@ -6,6 +6,8 @@
  */
 
 export const HELPER_URL = 'http://127.0.0.1:17748';
+// Set to true once the easier-transcribe package is on npm. Until then no page tells anyone to run it.
+export const HELPER_PUBLISHED = false;
 export const HELPER_COMMAND = 'npx easier-transcribe serve';
 
 export async function isHelperRunning() {
