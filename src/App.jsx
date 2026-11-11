@@ -13,7 +13,6 @@ import ProgressBar from './components/ProgressBar';
 import TranscriptOutput from './components/TranscriptOutput';
 import HelperPanel from './components/HelperPanel';
 import { isLightDevice, getAccurate, setAccurate, startOnProcessor } from './lib/modelChoice';
-import AIToolsSection from './components/AIToolsSection';
 import { extractAudio } from './lib/audio';
 import { getYouTubeCaptions } from './lib/youtube';
 import { isHelperRunning, transcribeWithHelper } from './lib/helper';
@@ -344,7 +343,7 @@ export default function App() {
         <div ref={resultRef} />
 
         {phase === 'idle' && (
-          <section className="space-y-4 mb-12">
+          <section id="tool" className="space-y-4 mb-12">
             <UploadZone onFileSelect={handleFile} disabled={working} />
             <LinkInput onYouTube={handleLink} onMediaLink={handleMediaLink} disabled={working} />
             {isLightDevice() && !workerRef.current && (
@@ -414,7 +413,6 @@ export default function App() {
 
         {phase === 'idle' && <Explainer />}
 
-        <AIToolsSection />
       </main>
 
       <Footer />
