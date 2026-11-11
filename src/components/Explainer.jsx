@@ -6,7 +6,7 @@ const faqs = [["Is it free?", "Yes. No plan to pay for and no account to make."]
 
 export default function Explainer() {
   return (
-    <section className="mb-12 space-y-8" aria-labelledby="how-heading">
+    <section className="space-y-8" aria-labelledby="how-heading">
       <div>
         <h2 id="how-heading" className="text-2xl font-bold mb-4">How it works</h2>
         <ol className="grid gap-3 sm:grid-cols-3">

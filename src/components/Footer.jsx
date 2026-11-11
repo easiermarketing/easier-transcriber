@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Footer() {
   return (
-    <footer className="mt-24 border-t border-[var(--line)] py-12 px-6">
+    <footer className="mt-8 border-t border-[var(--line)] py-12 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
