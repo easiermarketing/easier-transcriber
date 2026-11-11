@@ -9,7 +9,6 @@ export default function Header() {
             <img src="/easier-mark.png" alt="" width="40" height="40" className="w-9 h-9 sm:w-10 sm:h-10 shrink-0" />
             <div>
               <div className="text-lg sm:text-xl font-bold whitespace-nowrap">Easier Transcribe</div>
-              <p className="text-xs text-[var(--fg-muted)]">Free, Private, Instant</p>
             </div>
           </div>
           <a
